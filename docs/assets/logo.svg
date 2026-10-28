@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">Shobdo Keyboard</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Key cap plate -->
+  <rect x="114" y="114" width="284" height="284" rx="84" fill="#FFFFFF" fill-opacity="0.12"/>
+
+  <!-- Mark: top bar, right stem, left bowl -->
+  <g fill="none" stroke="#F8FAFC" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M181 199 H304"/>
+    <path d="M280 199 V330"/>
+    <path d="M181 199 V264 C181 307 207 331 246 331 C273 331 296 312 296 285"/>
+  </g>
+
+  <!-- Accent -->
+  <circle cx="341" cy="341" r="19" fill="#6366F1"/>
+</svg>

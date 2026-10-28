@@ -1,0 +1,48 @@
+{
+  "id": "en_symbols_1",
+  "name": "English symbols",
+  "rows": [
+    [
+      { "label": "1", "code": "1" },
+      { "label": "2", "code": "2" },
+      { "label": "3", "code": "3" },
+      { "label": "4", "code": "4" },
+      { "label": "5", "code": "5" },
+      { "label": "6", "code": "6" },
+      { "label": "7", "code": "7" },
+      { "label": "8", "code": "8" },
+      { "label": "9", "code": "9" },
+      { "label": "0", "code": "0" }
+    ],
+    [
+      { "label": "@", "code": "@" },
+      { "label": "#", "code": "#" },
+      { "label": "$", "code": "$" },
+      { "label": "%", "code": "%" },
+      { "label": "&", "code": "&" },
+      { "label": "*", "code": "*" },
+      { "label": "-", "code": "-" },
+      { "label": "+", "code": "+" },
+      { "label": "(", "code": "(" },
+      { "label": ")", "code": ")" }
+    ],
+    [
+      { "label": "[", "code": "[" },
+      { "label": "]", "code": "]" },
+      { "label": "{", "code": "{" },
+      { "label": "}", "code": "}" },
+      { "label": "<", "code": "<" },
+      { "label": ">", "code": ">" },
+      { "label": "/", "code": "/" },
+      { "label": "\\", "code": "\\" },
+      { "label": "|", "code": "|" }
+    ],
+    [
+      { "label": "2/2", "code": "", "type": "symbols", "widthWeight": 1.5 },
+      { "label": ",", "code": ",", "type": "comma" },
+      { "label": "space", "code": " ", "type": "space", "widthWeight": 5.0 },
+      { "label": ".", "code": ".", "type": "period" },
+      { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
+    ]
+  ]
+}

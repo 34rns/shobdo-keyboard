@@ -1,0 +1,19 @@
+{
+  "id": "royal_purple",
+  "name": "Royal Purple",
+  "dark": true,
+  "background": { "type": "gradient", "colors": ["#1A0B2E", "#2E1065"], "angle": 135 },
+  "key": {
+    "fill": "#1FFFFFFF",
+    "pressed": "#33FFFFFF",
+    "text": "#F5F3FF",
+    "radius": 14,
+    "shadow": true,
+    "stroke": "#33C4B5FD"
+  },
+  "specialKey": { "fill": "#26FFFFFF", "text": "#F5F3FF" },
+  "accent": "#A78BFA",
+  "suggestionBar": { "background": "#40000000", "text": "#DDD6FE" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 6
+}

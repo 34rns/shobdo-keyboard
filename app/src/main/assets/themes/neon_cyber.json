@@ -1,0 +1,19 @@
+{
+  "id": "neon_cyber",
+  "name": "Neon Cyber",
+  "dark": true,
+  "background": { "type": "gradient", "colors": ["#05010F", "#12002B"], "angle": 180 },
+  "key": {
+    "fill": "#1A00FFEA",
+    "pressed": "#3300FFEA",
+    "text": "#E6FFFF",
+    "radius": 6,
+    "shadow": true,
+    "stroke": "#4000FFEA"
+  },
+  "specialKey": { "fill": "#0FFF2BD6", "text": "#FFE6FF" },
+  "accent": "#00FFEA",
+  "suggestionBar": { "background": "#0F00FFEA", "text": "#B8FFF6" },
+  "font": { "scale": 1.05, "bold": true },
+  "keySpacing": 5
+}

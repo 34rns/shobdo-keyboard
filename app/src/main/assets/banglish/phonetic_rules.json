@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "reference": "Avro Phonetic (OmicronLab)",
+  "sources": [
+    "https://supriyosen.net/bangla/learn/posts/suborNomethod.php (Avro comparison table, read 2026-10-28)",
+    "https://en.wikipedia.org/wiki/Avro_Keyboard"
+  ],
+  "matchOrder": "longest-first",
+  "behavior": {
+    "hasanta": "্",
+    "oAfterConsonant": {
+      "trailing": "ো",
+      "medial": "",
+      "note": "Avro uses a word dictionary to decide; without one, a trailing o becomes ো (bhalo -> ভালো) and a medial o is the inherent vowel that also breaks a conjunct (por -> পর)."
+    }
+  },
+  "rules": {
+    "consonants": [
+      { "roman": "k", "bangla": "ক" },
+      { "roman": "kh", "bangla": "খ" },
+      { "roman": "g", "bangla": "গ" },
+      { "roman": "gh", "bangla": "ঘ" },
+      { "roman": "Ng", "bangla": "ঙ" },
+      { "roman": "c", "bangla": "চ" },
+      { "roman": "ch", "bangla": "ছ" },
+      { "roman": "j", "bangla": "জ" },
+      { "roman": "jh", "bangla": "ঝ" },
+      { "roman": "NG", "bangla": "ঞ" },
+      { "roman": "T", "bangla": "ট" },
+      { "roman": "Th", "bangla": "ঠ" },
+      { "roman": "D", "bangla": "ড" },
+      { "roman": "Dh", "bangla": "ঢ" },
+      { "roman": "N", "bangla": "ণ" },
+      { "roman": "t", "bangla": "ত" },
+      { "roman": "th", "bangla": "থ" },
+      { "roman": "d", "bangla": "দ" },
+      { "roman": "dh", "bangla": "ধ" },
+      { "roman": "n", "bangla": "ন" },
+      { "roman": "p", "bangla": "প" },
+      { "roman": "ph", "bangla": "ফ" },
+      { "roman": "b", "bangla": "ব" },
+      { "roman": "bh", "bangla": "ভ" },
+      { "roman": "m", "bangla": "ম" },
+      { "roman": "z", "bangla": "য" },
+      { "roman": "r", "bangla": "র" },
+      { "roman": "l", "bangla": "ল" },
+      { "roman": "sh", "bangla": "শ" },
+      { "roman": "S", "bangla": "শ" },
+      { "roman": "Sh", "bangla": "ষ" },
+      { "roman": "s", "bangla": "স" },
+      { "roman": "h", "bangla": "হ" },
+      { "roman": "y", "bangla": "য়" },
+      { "roman": "R", "bangla": "ড়" },
+      { "roman": "Rh", "bangla": "ঢ়" }
+    ],
+    "vowelStandalone": [
+      { "roman": "o", "bangla": "অ" },
+      { "roman": "a", "bangla": "আ" },
+      { "roman": "i", "bangla": "ই" },
+      { "roman": "I", "bangla": "ঈ" },
+      { "roman": "u", "bangla": "উ" },
+      { "roman": "U", "bangla": "ঊ" },
+      { "roman": "rri", "bangla": "ঋ" },
+      { "roman": "e", "bangla": "এ" },
+      { "roman": "OI", "bangla": "ঐ" },
+      { "roman": "O", "bangla": "ও" },
+      { "roman": "OU", "bangla": "ঔ" }
+    ],
+    "vowelKar": [
+      { "roman": "a", "bangla": "া" },
+      { "roman": "i", "bangla": "ি" },
+      { "roman": "I", "bangla": "ী" },
+      { "roman": "u", "bangla": "ু" },
+      { "roman": "U", "bangla": "ূ" },
+      { "roman": "rri", "bangla": "ৃ" },
+      { "roman": "e", "bangla": "ে" },
+      { "roman": "OI", "bangla": "ৈ" },
+      { "roman": "O", "bangla": "ো" },
+      { "roman": "OU", "bangla": "ৌ" }
+    ],
+    "jPhala": [
+      { "roman": "y", "bangla": "্য" },
+      { "roman": "Z", "bangla": "্য" }
+    ],
+    "signs": [
+      { "roman": "ng", "bangla": "ং" },
+      { "roman": ":", "bangla": "ঃ" },
+      { "roman": "^", "bangla": "ঁ" },
+      { "roman": "t``", "bangla": "ৎ" },
+      { "roman": ",,", "bangla": "্" }
+    ],
+    "digits": [
+      { "roman": "0", "bangla": "০" },
+      { "roman": "1", "bangla": "১" },
+      { "roman": "2", "bangla": "২" },
+      { "roman": "3", "bangla": "৩" },
+      { "roman": "4", "bangla": "৪" },
+      { "roman": "5", "bangla": "৫" },
+      { "roman": "6", "bangla": "৬" },
+      { "roman": "7", "bangla": "৭" },
+      { "roman": "8", "bangla": "৮" },
+      { "roman": "9", "bangla": "৯" }
+    ]
+  }
+}

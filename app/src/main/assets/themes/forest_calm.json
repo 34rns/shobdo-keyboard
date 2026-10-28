@@ -1,0 +1,19 @@
+{
+  "id": "forest_calm",
+  "name": "Forest Calm",
+  "dark": true,
+  "background": { "type": "gradient", "colors": ["#133A2E", "#1F5D4A"], "angle": 90 },
+  "key": {
+    "fill": "#1AFFFFFF",
+    "pressed": "#2EFFFFFF",
+    "text": "#ECFDF5",
+    "radius": 12,
+    "shadow": true,
+    "stroke": "#33A7F3D0"
+  },
+  "specialKey": { "fill": "#26FFFFFF", "text": "#ECFDF5" },
+  "accent": "#34D399",
+  "suggestionBar": { "background": "#40000000", "text": "#D1FAE5" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 6
+}

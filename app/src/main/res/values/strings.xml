@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shobdo Keyboard - settings UI strings (English).
+  Every user-visible string lives here; no text is hard-coded in Compose.
+  Apostrophes must be escaped as \' or the Android build fails.
+-->
+<resources>
+
+    <string name="app_name">Shobdo Keyboard</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Welcome</string>
+    <string name="onboarding_step_of">Step %1$d of %2$d</string>
+    <string name="onboarding_enable_title">Enable keyboard</string>
+    <string name="onboarding_enable_desc">Turn on Shobdo Keyboard in the system keyboard settings.</string>
+    <string name="onboarding_enable_button">Enable keyboard</string>
+    <string name="onboarding_choose_title">Choose keyboard</string>
+    <string name="onboarding_choose_desc">Select Shobdo Keyboard as your input method.</string>
+    <string name="onboarding_choose_button">Choose keyboard</string>
+    <string name="onboarding_setup_title">Pick your languages and theme</string>
+    <string name="onboarding_setup_desc">Choose which languages you type in and how the keyboard looks.</string>
+    <string name="onboarding_setup_button">Pick languages and theme</string>
+    <string name="onboarding_finish">Start typing</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="cd_step_done">Step completed</string>
+    <string name="cd_step_pending">Step not completed yet</string>
+
+    <!-- Home -->
+    <string name="home_title">Shobdo Keyboard</string>
+    <string name="home_languages">Languages</string>
+    <string name="home_languages_desc">Turn languages on or off. At least one must stay on.</string>
+    <string name="language_english">English</string>
+    <string name="language_bangla">Bangla</string>
+    <string name="language_banglish">Banglish</string>
+    <string name="language_last_warning">At least one language has to stay on.</string>
+    <string name="home_theme">Theme</string>
+    <string name="home_try_keyboard">Try your keyboard</string>
+    <string name="home_test_field_hint">Type here to test the keyboard</string>
+
+    <!-- Themes -->
+    <string name="themes_title">Themes</string>
+    <string name="theme_apply">Apply</string>
+    <string name="theme_current">Current</string>
+    <string name="theme_create">Create theme</string>
+    <string name="theme_duplicate">Duplicate</string>
+    <string name="theme_export">Export</string>
+    <string name="theme_import">Import</string>
+    <string name="theme_delete">Delete</string>
+    <string name="theme_name_label">Theme name</string>
+    <string name="theme_save">Save</string>
+    <string name="theme_contrast_error">Text contrast is too low (%1$s:1). It needs at least 4.5:1.</string>
+    <string name="theme_import_done">Theme imported</string>
+    <string name="theme_import_failed">That theme could not be imported</string>
+    <string name="cd_theme_card">%1$s theme</string>
+    <string name="cd_create_theme">Create a new theme</string>
+
+    <!-- Typing -->
+    <string name="typing_title">Typing</string>
+    <string name="typing_haptic">Haptic feedback</string>
+    <string name="typing_haptic_strength">Haptic strength</string>
+    <string name="typing_sound">Key sound</string>
+    <string name="typing_number_row">Number row</string>
+    <string name="typing_one_handed">One-handed mode</string>
+    <string name="one_handed_off">Off</string>
+    <string name="one_handed_left">Left</string>
+    <string name="one_handed_right">Right</string>
+    <string name="typing_auto_capitalise">Auto-capitalise</string>
+    <string name="typing_key_popup">Key popup</string>
+
+    <!-- Banglish -->
+    <string name="banglish_title">Banglish</string>
+    <string name="banglish_candidate_order">Suggestion order</string>
+    <string name="banglish_bangla_first">Bangla first</string>
+    <string name="banglish_roman_first">Roman first</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_licenses">Open-source licenses</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_privacy">Privacy</string>
+    <string name="about_privacy_body">This keyboard has no internet permission and sends nothing anywhere.</string>
+    <string name="cd_open_github">Open the GitHub repository</string>
+    <string name="cd_navigate_back">Go back</string>
+    <string name="cd_language_switch">%1$s language switch</string>
+
+</resources>

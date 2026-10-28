@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shobdo Keyboard - settings UI strings (Bangla).
+  Every key must exist in values/strings.xml with the same placeholders.
+  Entries marked "review" were translated by a non-native speaker and need a check.
+-->
+<resources>
+
+    <string name="app_name">শব্দ কীবোর্ড</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">স্বাগতম</string>
+    <string name="onboarding_step_of">ধাপ %1$d / %2$d</string>
+    <string name="onboarding_enable_title">কীবোর্ড চালু করুন</string>
+    <string name="onboarding_enable_desc">সিস্টেমের কীবোর্ড সেটিংসে গিয়ে শব্দ কীবোর্ড চালু করুন।</string>
+    <string name="onboarding_enable_button">কীবোর্ড চালু করুন</string>
+    <string name="onboarding_choose_title">কীবোর্ড বেছে নিন</string>
+    <string name="onboarding_choose_desc">ইনপুট পদ্ধতি হিসেবে শব্দ কীবোর্ড নির্বাচন করুন।</string>
+    <string name="onboarding_choose_button">কীবোর্ড বেছে নিন</string>
+    <string name="onboarding_setup_title">ভাষা ও থিম বেছে নিন</string>
+    <string name="onboarding_setup_desc">কোন ভাষায় লিখবেন আর কীবোর্ড কেমন দেখাবে, তা বেছে নিন।</string>
+    <string name="onboarding_setup_button">ভাষা ও থিম বেছে নিন</string>
+    <string name="onboarding_finish">লেখা শুরু করুন</string>
+    <string name="onboarding_skip">এড়িয়ে যান</string>
+    <!-- review -->
+    <string name="cd_step_done">ধাপটি সম্পন্ন হয়েছে</string>
+    <!-- review -->
+    <string name="cd_step_pending">ধাপটি এখনো সম্পন্ন হয়নি</string>
+
+    <!-- Home -->
+    <string name="home_title">শব্দ কীবোর্ড</string>
+    <string name="home_languages">ভাষা</string>
+    <string name="home_languages_desc">ভাষা চালু বা বন্ধ করুন। অন্তত একটি ভাষা চালু থাকতে হবে।</string>
+    <string name="language_english">ইংরেজি</string>
+    <string name="language_bangla">বাংলা</string>
+    <!-- review: "Banglish" transliterated, confirm the preferred form -->
+    <string name="language_banglish">বাংলিশ</string>
+    <string name="language_last_warning">অন্তত একটি ভাষা চালু থাকতে হবে।</string>
+    <string name="home_theme">থিম</string>
+    <string name="home_try_keyboard">কীবোর্ড ব্যবহার করে দেখুন</string>
+    <string name="home_test_field_hint">কীবোর্ড পরীক্ষা করতে এখানে লিখুন</string>
+
+    <!-- Themes -->
+    <string name="themes_title">থিম</string>
+    <string name="theme_apply">প্রয়োগ করুন</string>
+    <string name="theme_current">বর্তমান</string>
+    <string name="theme_create">থিম তৈরি করুন</string>
+    <string name="theme_duplicate">কপি করুন</string>
+    <string name="theme_export">রপ্তানি করুন</string>
+    <string name="theme_import">আমদানি করুন</string>
+    <string name="theme_delete">মুছে ফেলুন</string>
+    <string name="theme_name_label">থিমের নাম</string>
+    <string name="theme_save">সংরক্ষণ করুন</string>
+    <!-- review: technical sentence about WCAG contrast -->
+    <string name="theme_contrast_error">লেখা ও পটভূমির মধ্যে পার্থক্য খুব কম (%1$s:1)। অন্তত ৪.৫:১ দরকার।</string>
+    <string name="theme_import_done">থিম আমদানি হয়েছে</string>
+    <string name="theme_import_failed">থিমটি আমদানি করা যায়নি</string>
+    <string name="cd_theme_card">%1$s থিম</string>
+    <!-- review -->
+    <string name="cd_create_theme">নতুন থিম তৈরি করুন</string>
+
+    <!-- Typing -->
+    <string name="typing_title">টাইপিং</string>
+    <!-- review: haptic feedback is often left as "হ্যাপটিক" -->
+    <string name="typing_haptic">স্পর্শ কম্পন</string>
+    <!-- review -->
+    <string name="typing_haptic_strength">কম্পনের মাত্রা</string>
+    <!-- review: key sound, could be "কীক্লিক শব্দ" -->
+    <string name="typing_sound">কী শব্দ</string>
+    <string name="typing_number_row">সংখ্যা সারি</string>
+    <!-- review -->
+    <string name="typing_one_handed">একহাতে ব্যবহার</string>
+    <string name="one_handed_off">বন্ধ</string>
+    <string name="one_handed_left">বাম</string>
+    <string name="one_handed_right">ডান</string>
+    <!-- review -->
+    <string name="typing_auto_capitalise">স্বয়ংক্রিয় বড় হাতের অক্ষর</string>
+    <!-- review: "popup" may read better as পপ-আপ -->
+    <string name="typing_key_popup">কী পপআপ</string>
+
+    <!-- Banglish -->
+    <string name="banglish_title">বাংলিশ</string>
+    <!-- review -->
+    <string name="banglish_candidate_order">প্রস্তাবের ক্রম</string>
+    <string name="banglish_bangla_first">আগে বাংলা</string>
+    <string name="banglish_roman_first">আগে রোমান</string>
+
+    <!-- About -->
+    <string name="about_title">অ্যাপ সম্পর্কে</string>
+    <string name="about_version">সংস্করণ %1$s</string>
+    <string name="about_licenses">ওপেন সোর্স লাইসেন্স</string>
+    <!-- review: GitHub transliterated -->
+    <string name="about_github">গিটহাব</string>
+    <string name="about_privacy">গোপনীয়তা</string>
+    <string name="about_privacy_body">এই কীবোর্ডের ইন্টারনেটের অনুমতি নেই, এটি কোথাও কোনো তথ্য পাঠায় না।</string>
+    <!-- review -->
+    <string name="cd_open_github">গিটহাব রিপোজিটরি খুলুন</string>
+    <string name="cd_navigate_back">ফিরে যান</string>
+    <!-- review -->
+    <string name="cd_language_switch">%1$s ভাষার সুইচ</string>
+
+</resources>

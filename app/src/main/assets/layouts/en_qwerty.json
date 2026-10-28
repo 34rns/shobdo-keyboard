@@ -1,0 +1,59 @@
+{
+  "id": "en_qwerty",
+  "name": "English",
+  "rows": [
+    [
+      { "label": "1", "code": "1", "long": ["!"] },
+      { "label": "2", "code": "2", "long": ["@"] },
+      { "label": "3", "code": "3", "long": ["#"] },
+      { "label": "4", "code": "4", "long": ["$"] },
+      { "label": "5", "code": "5", "long": ["%"] },
+      { "label": "6", "code": "6", "long": ["^"] },
+      { "label": "7", "code": "7", "long": ["&"] },
+      { "label": "8", "code": "8", "long": ["*"] },
+      { "label": "9", "code": "9", "long": ["("] },
+      { "label": "0", "code": "0", "long": [")"] }
+    ],
+    [
+      { "label": "q", "code": "q" },
+      { "label": "w", "code": "w" },
+      { "label": "e", "code": "e", "long": ["é", "è", "ê", "ë"] },
+      { "label": "r", "code": "r", "long": ["ř"] },
+      { "label": "t", "code": "t" },
+      { "label": "y", "code": "y", "long": ["ý", "ÿ"] },
+      { "label": "u", "code": "u", "long": ["ú", "ù", "û", "ü"] },
+      { "label": "i", "code": "i", "long": ["í", "ì", "î", "ï"] },
+      { "label": "o", "code": "o", "long": ["ó", "ò", "ô", "ö", "õ"] },
+      { "label": "p", "code": "p" }
+    ],
+    [
+      { "label": "a", "code": "a", "long": ["à", "á", "â", "ä", "å"] },
+      { "label": "s", "code": "s", "long": ["š", "ś"] },
+      { "label": "d", "code": "d", "long": ["ð"] },
+      { "label": "f", "code": "f" },
+      { "label": "g", "code": "g", "long": ["ğ"] },
+      { "label": "h", "code": "h" },
+      { "label": "j", "code": "j" },
+      { "label": "k", "code": "k" },
+      { "label": "l", "code": "l", "long": ["ł"] }
+    ],
+    [
+      { "label": "⇧", "code": "", "type": "shift", "widthWeight": 1.5 },
+      { "label": "z", "code": "z", "long": ["ž"] },
+      { "label": "x", "code": "x" },
+      { "label": "c", "code": "c", "long": ["ç"] },
+      { "label": "v", "code": "v" },
+      { "label": "b", "code": "b" },
+      { "label": "n", "code": "n", "long": ["ñ"] },
+      { "label": "m", "code": "m" },
+      { "label": "⌫", "code": "", "type": "backspace", "widthWeight": 1.5 }
+    ],
+    [
+      { "label": "123", "code": "", "type": "symbols", "widthWeight": 1.5 },
+      { "label": ",", "code": ",", "type": "comma" },
+      { "label": "space", "code": " ", "type": "space", "widthWeight": 5.0 },
+      { "label": ".", "code": ".", "type": "period" },
+      { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
+    ]
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": "bn_kars",
+  "name": "বাংলা কার ও যুক্তাক্ষর",
+  "rows": [
+    [
+      { "label": "্", "code": "্" },
+      { "label": "্র", "code": "্র" },
+      { "label": "্য", "code": "্য" },
+      { "label": "্ব", "code": "্ব" },
+      { "label": "্ল", "code": "্ল" },
+      { "label": "্ম", "code": "্ম" },
+      { "label": "র্", "code": "র্" }
+    ],
+    [
+      { "label": "া", "code": "া" },
+      { "label": "ি", "code": "ি" },
+      { "label": "ী", "code": "ী" },
+      { "label": "ু", "code": "ু" },
+      { "label": "ূ", "code": "ূ" },
+      { "label": "ৃ", "code": "ৃ" },
+      { "label": "ে", "code": "ে" },
+      { "label": "ৈ", "code": "ৈ" },
+      { "label": "ো", "code": "ো" },
+      { "label": "ৌ", "code": "ৌ" }
+    ],
+    [
+      { "label": "ং", "code": "ং" },
+      { "label": "ঃ", "code": "ঃ" },
+      { "label": "ঁ", "code": "ঁ" },
+      { "label": "ৎ", "code": "ৎ" },
+      { "label": "ঞ", "code": "ঞ" },
+      { "label": "⌫", "code": "", "type": "backspace", "widthWeight": 1.5 }
+    ],
+    [
+      { "label": "অ", "code": "", "type": "symbols", "widthWeight": 1.5 },
+      { "label": "১২৩", "code": "", "type": "symbols", "widthWeight": 1.5 },
+      { "label": ",", "code": ",", "type": "comma" },
+      { "label": "space", "code": " ", "type": "space", "widthWeight": 4.0 },
+      { "label": "।", "code": "।", "type": "period" },
+      { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
+    ]
+  ]
+}

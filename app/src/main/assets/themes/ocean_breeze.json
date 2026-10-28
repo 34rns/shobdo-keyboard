@@ -1,0 +1,19 @@
+{
+  "id": "ocean_breeze",
+  "name": "Ocean Breeze",
+  "dark": true,
+  "background": { "type": "gradient", "colors": ["#062A3C", "#0A4F5C"], "angle": 135 },
+  "key": {
+    "fill": "#1AFFFFFF",
+    "pressed": "#2EFFFFFF",
+    "text": "#F0FDFF",
+    "radius": 14,
+    "shadow": true,
+    "stroke": "#337DD3FC"
+  },
+  "specialKey": { "fill": "#26FFFFFF", "text": "#F0FDFF" },
+  "accent": "#22D3EE",
+  "suggestionBar": { "background": "#40000000", "text": "#E0F7FA" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 7
+}

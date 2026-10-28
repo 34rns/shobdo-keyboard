@@ -1,0 +1,19 @@
+{
+  "id": "amoled_black",
+  "name": "AMOLED Black",
+  "dark": true,
+  "background": { "type": "solid", "color": "#000000" },
+  "key": {
+    "fill": "#14FFFFFF",
+    "pressed": "#24FFFFFF",
+    "text": "#F5F5F5",
+    "radius": 8,
+    "shadow": false,
+    "stroke": "#14FFFFFF"
+  },
+  "specialKey": { "fill": "#1AFFFFFF", "text": "#F5F5F5" },
+  "accent": "#22D3EE",
+  "suggestionBar": { "background": "#0AFFFFFF", "text": "#E5E5E5" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 4
+}

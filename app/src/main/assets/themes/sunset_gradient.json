@@ -1,0 +1,19 @@
+{
+  "id": "sunset_gradient",
+  "name": "Sunset Gradient",
+  "dark": false,
+  "background": { "type": "gradient", "colors": ["#FF8A65", "#FFB74D"], "angle": 160 },
+  "key": {
+    "fill": "#59FFFFFF",
+    "pressed": "#73FFFFFF",
+    "text": "#2B1B17",
+    "radius": 16,
+    "shadow": true,
+    "stroke": "#40FFFFFF"
+  },
+  "specialKey": { "fill": "#40FFFFFF", "text": "#2B1B17" },
+  "accent": "#C2410C",
+  "suggestionBar": { "background": "#1F000000", "text": "#2B1B17" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 6
+}

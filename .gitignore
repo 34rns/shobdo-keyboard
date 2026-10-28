@@ -1,0 +1,24 @@
+# Private memory + local machine files (never pushed)
+.ai/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules
+*.jks
+*.keystore
+local.properties
+
+# Android / Gradle build output
+.gradle/
+build/
+captures/
+*.iml
+.idea/
+
+# Tooling and secrets
+.env
+.DS_Store
+
+# Python helpers in scripts/
+__pycache__/
+*.pyc

@@ -1,0 +1,19 @@
+{
+  "id": "pure_light",
+  "name": "Pure Light",
+  "dark": false,
+  "background": { "type": "solid", "color": "#F8FAFC" },
+  "key": {
+    "fill": "#1F0F172A",
+    "pressed": "#2E0F172A",
+    "text": "#0F172A",
+    "radius": 10,
+    "shadow": true,
+    "stroke": "#140F172A"
+  },
+  "specialKey": { "fill": "#140F172A", "text": "#0F172A" },
+  "accent": "#2563EB",
+  "suggestionBar": { "background": "#10000000", "text": "#334155" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 6
+}
