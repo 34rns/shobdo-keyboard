@@ -1,0 +1,6 @@
+# Shell scripts must stay LF in every working copy.
+# core.autocrlf=true would otherwise hand bash a CRLF file on checkout, which
+# fails with `$'\r': command not found` on the first line. The Gradle wrapper has
+# the same requirement once it exists.
+*.sh text eol=lf
+gradlew text eol=lf
