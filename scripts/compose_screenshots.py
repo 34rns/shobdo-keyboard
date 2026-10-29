@@ -3,7 +3,7 @@
 
     python scripts/compose_screenshots.py
 
-Inputs  : docs/screenshots/01-english.png ... (produced by render_screenshots.py)
+Inputs  : docs/screenshots/01-english.png ... (produced by scripts/screenshots.ps1)
 Outputs : docs/screenshots/composite-languages.png
           docs/screenshots/composite-themes.png
           docs/screenshots/composite-settings.png
@@ -51,7 +51,7 @@ def font(style, size):
 def load(name):
     path = SHOTS / f"{name}.png"
     if not path.exists():
-        raise SystemExit(f"missing {path}; run scripts/render_screenshots.py first")
+        raise SystemExit(f"missing {path}; run scripts/screenshots.ps1 first")
     return Image.open(path).convert("RGB")
 
 
@@ -170,7 +170,7 @@ def social_preview(out_name="social-preview.png"):
 
     for index, line in enumerate([
         "No internet permission — nothing leaves your device",
-        "12 themes, each checked for 4.5:1 contrast",
+        "24 themes, each checked for 4.5:1 contrast",
         "Open source, MIT licensed",
     ]):
         y = 336 + index * 38
@@ -201,13 +201,14 @@ def main():
         "composite-languages.png", cols=3, phone_width=520))
 
     written.append(composite(
-        ["01-english", "07-pure-light"],
-        ["Midnight Glass (default)", "Pure Light"],
-        "composite-themes.png", cols=2, phone_width=460, title="Two of the twelve built-in themes"))
+        ["01-english", "09-aurora", "07-pure-light", "08-lava"],
+        ["Midnight Glass (default)", "Aurora Borealis", "Pure Light", "Lava"],
+        "composite-themes.png", cols=4, phone_width=400,
+        title="Four of the twenty-four built-in themes"))
 
     written.append(composite(
         ["04-settings", "05-themes", "06-theme-dialog"],
-        ["Settings", "Theme picker with live preview", "Duplicate, export or apply"],
+        ["Settings", "Twenty-four themes, live preview", "Duplicate, export or apply"],
         "composite-settings.png", cols=3, phone_width=520))
 
     written.append(social_preview())
