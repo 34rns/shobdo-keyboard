@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Input method subtypes. One per language; the Banglish subtype keeps the Bangla locale so
+  Bangla text renders with the right font, and carries imeSubtypeExtraValue="banglish" so the service
+  can tell it apart from the fixed Bangla layout.
+-->
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="app.shobdo.keyboard.settings.SettingsActivity"
+    android:supportsSwitchingToNextInputMethod="true">
+
+    <subtype
+        android:imeSubtypeLocale="en_US"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true"
+        android:label="@string/subtype_english"
+        android:languageTag="en-US" />
+
+    <subtype
+        android:imeSubtypeLocale="bn_BD"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_bangla"
+        android:languageTag="bn-BD" />
+
+    <subtype
+        android:imeSubtypeExtraValue="banglish"
+        android:imeSubtypeLocale="bn_BD"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_banglish"
+        android:languageTag="bn-BD" />
+
+</input-method>

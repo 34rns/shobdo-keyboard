@@ -41,8 +41,9 @@
     [
       { "label": "ABC", "code": "", "type": "symbols", "widthWeight": 1.5 },
       { "label": ",", "code": ",", "type": "comma" },
-      { "label": "space", "code": " ", "type": "space", "widthWeight": 5.0 },
+      { "label": "space", "code": " ", "type": "space", "widthWeight": 4.0 },
       { "label": ".", "code": ".", "type": "period" },
+      { "label": "🌐", "code": "", "type": "globe", "widthWeight": 1.5 },
       { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
     ]
   ]

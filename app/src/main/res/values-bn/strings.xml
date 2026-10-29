@@ -8,6 +8,14 @@
 
     <string name="app_name">শব্দ কীবোর্ড</string>
 
+    <!-- Input method subtypes (see res/xml/method.xml) -->
+    <!-- review -->
+    <string name="subtype_english">ইংরেজি</string>
+    <!-- review -->
+    <string name="subtype_bangla">বাংলা (প্রভাত)</string>
+    <!-- review -->
+    <string name="subtype_banglish">বাংলিশ</string>
+
     <!-- Onboarding -->
     <string name="onboarding_title">স্বাগতম</string>
     <string name="onboarding_step_of">ধাপ %1$d / %2$d</string>
@@ -37,6 +45,7 @@
     <string name="language_banglish">বাংলিশ</string>
     <string name="language_last_warning">অন্তত একটি ভাষা চালু থাকতে হবে।</string>
     <string name="home_theme">থিম</string>
+    <string name="home_more">আরও</string>
     <string name="home_try_keyboard">কীবোর্ড ব্যবহার করে দেখুন</string>
     <string name="home_test_field_hint">কীবোর্ড পরীক্ষা করতে এখানে লিখুন</string>
 
@@ -52,7 +61,6 @@
     <string name="theme_name_label">থিমের নাম</string>
     <string name="theme_save">সংরক্ষণ করুন</string>
     <!-- review: technical sentence about WCAG contrast -->
-    <string name="theme_contrast_error">লেখা ও পটভূমির মধ্যে পার্থক্য খুব কম (%1$s:1)। অন্তত ৪.৫:১ দরকার।</string>
     <string name="theme_import_done">থিম আমদানি হয়েছে</string>
     <string name="theme_import_failed">থিমটি আমদানি করা যায়নি</string>
     <string name="cd_theme_card">%1$s থিম</string>
@@ -78,12 +86,70 @@
     <!-- review: "popup" may read better as পপ-আপ -->
     <string name="typing_key_popup">কী পপআপ</string>
 
+    <!-- review -->
+    <string name="typing_key_height">কী-এর উচ্চতা</string>
+    <!-- review -->
+    <string name="key_height_compact">ছোট</string>
+    <!-- review -->
+    <string name="key_height_normal">স্বাভাবিক</string>
+    <!-- review -->
+    <string name="key_height_tall">বড়</string>
+    <!-- review -->
+    <string name="typing_key_borders">কী-এর সীমানা</string>
+    <!-- review -->
+    <string name="typing_font_size">লেখার আকার</string>
+    <!-- review -->
+    <string name="typing_bold">মোটা অক্ষর</string>
+    <!-- review -->
+    <string name="typing_background">পটভূমির ছবি</string>
+    <!-- review -->
+    <string name="typing_background_choose">ছবি বাছুন</string>
+    <!-- review -->
+    <string name="typing_background_remove">ছবি সরান</string>
+    <!-- review -->
+    <string name="typing_background_brightness">উজ্জ্বলতা</string>
+    <!-- review -->
+    <string name="typing_background_blur">ঝাপসা</string>
+    <!-- review -->
+    <string name="haptic_light">হালকা</string>
+    <!-- review -->
+    <string name="haptic_normal">স্বাভাবিক</string>
+    <!-- review -->
+    <string name="haptic_strong">জোরালো</string>
+    <!-- review -->
+    <string name="theme_builtin">অন্তর্ভুক্ত থিম</string>
+    <!-- review -->
+    <string name="theme_user">আপনার থিম</string>
+    <!-- review -->
+    <string name="theme_key_fill">কী-এর রং (#AARRGGBB)</string>
+    <!-- review -->
+    <string name="theme_key_text">কী-এর লেখার রং</string>
+    <!-- review -->
+    <string name="theme_accent">প্রধান রং</string>
+    <!-- review -->
+    <string name="theme_saved">%1$s সংরক্ষিত হয়েছে</string>
+    <!-- review -->
+    <string name="common_cancel">বাতিল</string>
+    <!-- review -->
+    <string name="common_ok">ঠিক আছে</string>
+    <!-- review -->
+    <string name="background_updated">পটভূমি হালনাগাদ হয়েছে</string>
+    <!-- review -->
+    <string name="background_unreadable">ছবিটি পড়া গেল না</string>
+    <!-- review -->
+    <!-- review -->
+    <string name="cd_slider">%1$s স্লাইডার</string>
+
     <!-- Banglish -->
     <string name="banglish_title">বাংলিশ</string>
     <!-- review -->
     <string name="banglish_candidate_order">প্রস্তাবের ক্রম</string>
     <string name="banglish_bangla_first">আগে বাংলা</string>
     <string name="banglish_roman_first">আগে রোমান</string>
+    <!-- review -->
+    <string name="banglish_help">রোমান অক্ষরে লিখুন, কী-এর উপরে বাংলা শব্দ দেখা যাবে। স্পেস চাপলে বাংলা শব্দ বসবে; রোমান অপশনে চাপ দিলে ইংরেজি লেখাই থাকবে।</string>
+    <!-- review -->
+    <string name="banglish_examples">উদাহরণ</string>
 
     <!-- About -->
     <string name="about_title">অ্যাপ সম্পর্কে</string>
@@ -93,6 +159,9 @@
     <string name="about_github">গিটহাব</string>
     <string name="about_privacy">গোপনীয়তা</string>
     <string name="about_privacy_body">এই কীবোর্ডের ইন্টারনেটের অনুমতি নেই, এটি কোথাও কোনো তথ্য পাঠায় না।</string>
+    <!-- review -->
+    <string name="about_licenses_body">জেটপ্যাক কম্পোজ ও মেটেরিয়াল ৩ (Apache 2.0)। কোটলিন স্ট্যান্ডার্ড লাইব্রেরি ও kotlinx.serialization (Apache 2.0)। শব্দ কীবোর্ড নিজে MIT লাইসেন্সের অধীন। প্রতিটি লাইসেন্সের পূর্ণ লেখা সোর্স কোডের সঙ্গে দেওয়া আছে।</string>
+    <!-- review -->
     <!-- review -->
     <string name="cd_open_github">গিটহাব রিপোজিটরি খুলুন</string>
     <string name="cd_navigate_back">ফিরে যান</string>
