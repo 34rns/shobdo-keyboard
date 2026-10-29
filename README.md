@@ -37,7 +37,7 @@ from making a connection at all. See [PRIVACY.md](PRIVACY.md).
 | ![English QWERTY with number row](docs/screenshots/01-english.png) | ![Bangla Provhat layout](docs/screenshots/02-bangla.png) | ![Banglish with Bangla suggestions](docs/screenshots/03-banglish.png) |
 | Number row, glass keys | Probhat fixed layout | Type Roman, get Bangla |
 
-![Two of the twenty-four built-in themes](docs/screenshots/composite-themes.png)
+![Four of the twenty-four built-in themes](docs/screenshots/composite-themes.png)
 
 | Settings | Theme picker | Theme actions |
 |:---:|:---:|:---:|
