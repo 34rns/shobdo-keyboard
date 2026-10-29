@@ -37,18 +37,17 @@ from making a connection at all. See [PRIVACY.md](PRIVACY.md).
 | ![English QWERTY with number row](docs/screenshots/01-english.png) | ![Bangla Provhat layout](docs/screenshots/02-bangla.png) | ![Banglish with Bangla suggestions](docs/screenshots/03-banglish.png) |
 | Number row, glass keys | Probhat fixed layout | Type Roman, get Bangla |
 
-![Six of the twelve built-in themes](docs/screenshots/composite-themes.png)
+![Two of the twelve built-in themes](docs/screenshots/composite-themes.png)
 
-| Settings | Theme picker | One-handed |
+| Settings | Theme picker | Theme actions |
 |:---:|:---:|:---:|
-| ![Settings and onboarding](docs/screenshots/04-settings.png) | ![Theme picker](docs/screenshots/05-themes.png) | ![One-handed mode](docs/screenshots/06-one-handed.png) |
-| Languages, theme, typing | Twelve themes, live preview | Right-hand layout |
+| ![Settings](docs/screenshots/04-settings.png) | ![Theme picker](docs/screenshots/05-themes.png) | ![Theme dialog](docs/screenshots/06-theme-dialog.png) |
+| Languages, theme, typing | Twelve themes, live preview | Duplicate, export or apply |
 
-More theme shots are in [`docs/screenshots/`](docs/screenshots) (`07`–`12`).
-
-These images are generated from the layout and theme files in this repository — the same
-JSON the keyboard draws from — by `scripts/render_screenshots.py`, and are not yet device
-captures. `scripts/screenshots.sh` is the device pipeline, ready for when a build exists.
+Every image above is a real capture: the debug build running on Android 15, photographed with
+`adb exec-out screencap` while the keyboard was the active input method, in a debug-only demo
+chat screen that never ships in a release APK. `scripts/screenshots.ps1` replays the sequence
+and `scripts/compose_screenshots.py` builds the composites.
 
 ## Features
 

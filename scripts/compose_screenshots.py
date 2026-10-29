@@ -178,10 +178,10 @@ def social_preview(out_name="social-preview.png"):
         draw.text((142, y), line, font=font("regular", 21), fill=(214, 222, 236))
 
     # Two phones, the lighter one behind so it reads as a pair.
-    back = load("08-theme-pure-light")
+    back = load("07-pure-light")
     front = load("03-banglish")
-    place_phone(canvas, back, 806, 118, 250, radius=28, bezel=7)
-    place_phone(canvas, front, 1006, 96, 250, radius=28, bezel=7)
+    place_phone(canvas, back, 792, 150, 212, radius=24, bezel=6)
+    place_phone(canvas, front, 986, 118, 212, radius=24, bezel=6)
 
     out = ASSETS / out_name
     canvas.convert("RGB").save(out, optimize=True)
@@ -201,15 +201,13 @@ def main():
         "composite-languages.png", cols=3, phone_width=520))
 
     written.append(composite(
-        ["07-theme-midnight-glass", "08-theme-pure-light", "09-theme-amoled-black",
-         "10-theme-ocean-breeze", "11-theme-sunset-gradient", "12-theme-bangla-flag"],
-        ["Midnight Glass", "Pure Light", "AMOLED Black",
-         "Ocean Breeze", "Sunset Gradient", "Bangla Flag"],
-        "composite-themes.png", cols=3, phone_width=400, title="Six of the twelve built-in themes"))
+        ["01-english", "07-pure-light"],
+        ["Midnight Glass (default)", "Pure Light"],
+        "composite-themes.png", cols=2, phone_width=460, title="Two of the twelve built-in themes"))
 
     written.append(composite(
-        ["04-settings", "05-themes", "06-one-handed"],
-        ["Settings and onboarding", "Theme picker with live preview", "One-handed mode"],
+        ["04-settings", "05-themes", "06-theme-dialog"],
+        ["Settings", "Theme picker with live preview", "Duplicate, export or apply"],
         "composite-settings.png", cols=3, phone_width=520))
 
     written.append(social_preview())

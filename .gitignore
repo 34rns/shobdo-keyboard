@@ -22,3 +22,9 @@ captures/
 # Python helpers in scripts/
 __pycache__/
 *.pyc
+
+# Release artifacts are attached to GitHub releases, not committed
+dist/
+*.apk
+*.aab
+*.apk.sha256

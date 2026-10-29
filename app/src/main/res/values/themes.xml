@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only the window chrome before Compose draws. The app itself is Compose Material 3 and
+  follows the system light/dark setting on its own.
+-->
+<resources>
+    <style name="Theme.Shobdo" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">#FFFBFF</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
