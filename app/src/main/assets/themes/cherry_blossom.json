@@ -1,0 +1,19 @@
+{
+  "id": "cherry_blossom",
+  "name": "Cherry Blossom",
+  "dark": false,
+  "background": { "type": "gradient", "colors": ["#FFF1F5", "#FBCFE8"], "angle": 180 },
+  "key": {
+    "fill": "#1F4A0D33",
+    "pressed": "#334A0D33",
+    "text": "#4A0D33",
+    "radius": 16,
+    "shadow": true,
+    "stroke": "#1A4A0D33"
+  },
+  "specialKey": { "fill": "#144A0D33", "text": "#4A0D33" },
+  "accent": "#EC4899",
+  "suggestionBar": { "background": "#1A000000", "text": "#4A0D33" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 8
+}

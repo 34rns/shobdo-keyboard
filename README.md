@@ -20,7 +20,7 @@ people who know the letters, and a phonetic Banglish mode for people who think i
 letters — `ami` becomes আমি. English is one tap away, and every language can be switched
 off individually.
 
-**Themes that look designed, not defaulted.** Twelve built-in themes, from AMOLED Black to
+**Themes that look designed, not defaulted.** Twenty-four built-in themes, from AMOLED Black to
 Rose Gold, each checked against a 4.5:1 contrast floor on the actual composited key colour.
 Themes are plain JSON, so you can write your own and share it.
 
@@ -37,12 +37,12 @@ from making a connection at all. See [PRIVACY.md](PRIVACY.md).
 | ![English QWERTY with number row](docs/screenshots/01-english.png) | ![Bangla Provhat layout](docs/screenshots/02-bangla.png) | ![Banglish with Bangla suggestions](docs/screenshots/03-banglish.png) |
 | Number row, glass keys | Probhat fixed layout | Type Roman, get Bangla |
 
-![Two of the twelve built-in themes](docs/screenshots/composite-themes.png)
+![Two of the twenty-four built-in themes](docs/screenshots/composite-themes.png)
 
 | Settings | Theme picker | Theme actions |
 |:---:|:---:|:---:|
 | ![Settings](docs/screenshots/04-settings.png) | ![Theme picker](docs/screenshots/05-themes.png) | ![Theme dialog](docs/screenshots/06-theme-dialog.png) |
-| Languages, theme, typing | Twelve themes, live preview | Duplicate, export or apply |
+| Languages, theme, typing | Twenty-four themes, live preview | Duplicate, export or apply |
 
 Every image above is a real capture: the debug build running on Android 15, photographed with
 `adb exec-out screencap` while the keyboard was the active input method, in a debug-only demo
@@ -63,7 +63,7 @@ and `scripts/compose_screenshots.py` builds the composites.
   base letter together with its kar.
 - **Suggestion bar** with the Bangla candidate first, the Roman text second, and a tap to
   commit either.
-- **Twelve themes** with live preview, plus duplicate, create, export and import.
+- **Twenty-four themes** with live preview, plus duplicate, create, export and import.
 - **Adjustable everything:** key height, spacing, corner radius, font size, bold, borders,
   number row, haptic strength and one-handed mode.
 - **Dark and light,** following the system, with Material You colours on Android 12+.
@@ -72,7 +72,7 @@ and `scripts/compose_screenshots.py` builds the composites.
 
 ## Install
 
-1. Download the latest `shobdo-keyboard-*.apk` from
+1. Download the latest `Shobdo-Keyboard-v*.apk` from
    [Releases](https://github.com/34rns/shobdo-keyboard/releases).
 2. Open the file on your phone and allow installing from this source when asked.
 3. Open **Shobdo Keyboard** and follow the three setup steps: enable the keyboard, choose
@@ -139,13 +139,13 @@ settings are in **[docs/THEME_FORMAT.md](docs/THEME_FORMAT.md)**.
 
 - [x] Layout data for English, Bangla (Probhat) and Bangla digits
 - [x] Phonetic Banglish rules with a verified test fixture
-- [x] Twelve themes, contrast-checked
-- [x] Settings and onboarding strings, English and Bangla
-- [ ] Keyboard core: canvas drawing, touch handling, input connection
-- [ ] Language switching and Bangla composing
-- [ ] Settings app with onboarding and live theme preview
-- [ ] Release build, signed APK and store-quality screenshots
+- [x] Canvas keyboard core: drawing, touch handling, input connection
+- [x] Language switching and Bangla composing
+- [x] Settings app with onboarding and live theme preview
+- [x] Twenty-four themes, contrast-checked
+- [x] Signed APK, screenshots and the v0.1.0 release
 - [ ] Small handwritten word list to improve Banglish suggestions
+- [ ] Automatic reph (র্) in Banglish words like `kormo` → কর্ম
 - [ ] More layouts (Jatiya, phonetic Bangla)
 
 ## Contributing

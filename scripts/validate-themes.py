@@ -25,8 +25,10 @@ for _stream in (sys.stdout, sys.stderr):
 
 MIN_CONTRAST = 4.5
 
-# The 12 themes P5 requires, by file name.
+# Every built-in theme, by file name. A theme file that is not listed here still gets
+# validated; the list guards against a theme being deleted by accident.
 REQUIRED_THEMES = [
+    # 0.1.0
     "midnight_glass",
     "pure_light",
     "amoled_black",
@@ -39,6 +41,19 @@ REQUIRED_THEMES = [
     "paper_minimal",
     "royal_purple",
     "bangla_flag",
+    # 0.2.0
+    "aurora_borealis",
+    "cherry_blossom",
+    "desert_dune",
+    "deep_space",
+    "mint_fresh",
+    "graphite_pro",
+    "sky_day",
+    "lava",
+    "lavender_mist",
+    "monsoon",
+    "golden_hour",
+    "ink_and_paper",
 ]
 
 KEY_FIELDS = ("fill", "pressed", "text")

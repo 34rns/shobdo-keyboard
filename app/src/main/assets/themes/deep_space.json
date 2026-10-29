@@ -1,0 +1,19 @@
+{
+  "id": "deep_space",
+  "name": "Deep Space",
+  "dark": true,
+  "background": { "type": "gradient", "colors": ["#05010F", "#1B0B3B"], "angle": 180 },
+  "key": {
+    "fill": "#1FFFFFFF",
+    "pressed": "#33FFFFFF",
+    "text": "#EDE9FE",
+    "radius": 18,
+    "shadow": false,
+    "stroke": "#1AA78BFA"
+  },
+  "specialKey": { "fill": "#26FFFFFF", "text": "#EDE9FE" },
+  "accent": "#A78BFA",
+  "suggestionBar": { "background": "#00000066", "text": "#DDD6FE" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 10
+}

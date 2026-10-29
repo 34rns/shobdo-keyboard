@@ -9,15 +9,17 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- No unreleased changes yet.
+- Twelve more built-in themes, bringing the collection to 24: **Aurora Borealis**, **Cherry
+  Blossom**, **Desert Dune**, **Deep Space**, **Mint Fresh**, **Graphite Pro**, **Sky Day**,
+  **Lava**, **Lavender Mist**, **Monsoon**, **Golden Hour** and **Ink and Paper**.
+- Every theme is now checked against both stops of its own background gradient, so key text
+  stays above the 4.5:1 floor at either end of the screen — the worst case across all 24 is
+  5.06:1.
 
 ### Changed
 
-- No unreleased changes yet.
-
-### Fixed
-
-- No unreleased changes yet.
+- The theme validator and the unit tests now name all 24 built-in themes, so deleting one
+  fails the build instead of quietly shrinking the gallery.
 
 ## [0.1.0] - 2026-10-29
 
