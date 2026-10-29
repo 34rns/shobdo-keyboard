@@ -19,7 +19,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - No unreleased changes yet.
 
-## [0.1.0] - 2026-10-28
+## [0.1.0] - 2026-10-29
 
 First public release. Bangla, Banglish and English typing on Android, with no network
 access at all.
@@ -48,7 +48,7 @@ access at all.
 ### Known limitations
 
 - No word list, so suggestions are limited to the phonetic candidate.
-- Automatic reph (র্) is not implemented: `kormo` gives করমো rather than কর্ম.
+- Automatic reph (à¦°à§) is not implemented: `kormo` gives à¦•à¦°à¦®à§‹ rather than à¦•à¦°à§à¦®.
 - A few dictionary-dependent spellings differ from Avro; see
   [docs/BANGLISH.md](docs/BANGLISH.md).
 
