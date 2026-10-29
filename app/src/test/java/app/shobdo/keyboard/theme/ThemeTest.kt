@@ -17,15 +17,17 @@ class ThemeTest {
         files().map { ThemeJson.parse(it.readText(Charsets.UTF_8), builtIn = true) }
 
     @Test
-    fun `all twelve built in themes are present and parse`() {
+    fun `all twenty four built in themes are present and parse`() {
         val expected = listOf(
-            "amoled_black", "bangla_flag", "forest_calm", "material_you", "midnight_glass",
-            "neon_cyber", "ocean_breeze", "paper_minimal", "pure_light", "rose_gold",
-            "royal_purple", "sunset_gradient"
+            "amoled_black", "aurora_borealis", "bangla_flag", "cherry_blossom", "deep_space",
+            "desert_dune", "forest_calm", "golden_hour", "graphite_pro", "ink_and_paper",
+            "lava", "lavender_mist", "material_you", "midnight_glass", "mint_fresh",
+            "monsoon", "neon_cyber", "ocean_breeze", "paper_minimal", "pure_light",
+            "rose_gold", "royal_purple", "sky_day", "sunset_gradient"
         )
         val ids = files().map { it.nameWithoutExtension }
         assertEquals(expected.sorted(), ids.sorted())
-        assertEquals(12, themes().size)
+        assertEquals(24, themes().size)
     }
 
     @Test

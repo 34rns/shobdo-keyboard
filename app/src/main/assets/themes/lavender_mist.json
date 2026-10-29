@@ -1,0 +1,19 @@
+{
+  "id": "lavender_mist",
+  "name": "Lavender Mist",
+  "dark": false,
+  "background": { "type": "gradient", "colors": ["#F5F3FF", "#DDD6FE"], "angle": 180 },
+  "key": {
+    "fill": "#1F2E1065",
+    "pressed": "#2E2E1065",
+    "text": "#2E1065",
+    "radius": 16,
+    "shadow": true,
+    "stroke": "#1A2E1065"
+  },
+  "specialKey": { "fill": "#142E1065", "text": "#2E1065" },
+  "accent": "#8B5CF6",
+  "suggestionBar": { "background": "#14000000", "text": "#3B2170" },
+  "font": { "scale": 1.0, "bold": false },
+  "keySpacing": 8
+}
