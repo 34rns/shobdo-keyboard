@@ -9,11 +9,17 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- No unreleased changes yet.
+
+## [0.2.0] - 2026-10-29
+
+### Added
+
 - Twelve more built-in themes, bringing the collection to 24: **Aurora Borealis**, **Cherry
   Blossom**, **Desert Dune**, **Deep Space**, **Mint Fresh**, **Graphite Pro**, **Sky Day**,
   **Lava**, **Lavender Mist**, **Monsoon**, **Golden Hour** and **Ink and Paper**.
 - Every theme is now checked against both stops of its own background gradient, so key text
-  stays above the 4.5:1 floor at either end of the screen — the worst case across all 24 is
+  stays above the 4.5:1 floor at either end of the screen â€” the worst case across all 24 is
   5.06:1.
 
 ### Changed
@@ -50,7 +56,7 @@ access at all.
 ### Known limitations
 
 - No word list, so suggestions are limited to the phonetic candidate.
-- Automatic reph (à¦°à§) is not implemented: `kormo` gives à¦•à¦°à¦®à§‹ rather than à¦•à¦°à§à¦®.
+- Automatic reph (Ã Â¦Â°Ã Â§Â) is not implemented: `kormo` gives Ã Â¦â€¢Ã Â¦Â°Ã Â¦Â®Ã Â§â€¹ rather than Ã Â¦â€¢Ã Â¦Â°Ã Â§ÂÃ Â¦Â®.
 - A few dictionary-dependent spellings differ from Avro; see
   [docs/BANGLISH.md](docs/BANGLISH.md).
 
