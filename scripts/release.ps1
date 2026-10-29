@@ -27,6 +27,14 @@ function Stop-Release {
     exit 1
 }
 
+function Write-TextFile {
+    # UTF-8 without a byte-order mark: a BOM at the start of version.properties would make
+    # the first property name unreadable to Java's Properties loader.
+    param([string]$Path, [AllowEmptyString()][string]$Text)
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText((Join-Path (Get-Location) $Path), $Text, $utf8)
+}
+
 function Write-Step {
     param([string]$Message)
     Write-Host "release: $Message" -ForegroundColor Cyan
@@ -84,7 +92,7 @@ function Update-Changelog {
         $updated = $lines | ForEach-Object {
             if ($_ -match ('^## \[' + [regex]::Escape($Version) + '\]')) { "## [$Version] - $Date" } else { $_ }
         }
-        Set-Content -Path $Path -Value $updated -Encoding UTF8
+        Write-TextFile -Path $Path -Text ($updated -join [Environment]::NewLine)
         Write-Step "CHANGELOG already had [$Version]; date set to $Date"
         return
     }
@@ -143,7 +151,7 @@ function Update-Changelog {
     $new += ''
     $new += $tail
 
-    Set-Content -Path $Path -Value $new -Encoding UTF8
+    Write-TextFile -Path $Path -Text ($new -join [Environment]::NewLine)
     Write-Step "moved the Unreleased notes under [$Version]"
 }
 
@@ -151,7 +159,7 @@ Update-Changelog -Version $Version -Date $today -Path $changelogFile
 
 # --- 3. version.properties -------------------------------------------------------------
 
-Set-Content -Path $versionFile -Value ("VERSION_NAME=$Version`nVERSION_CODE=$newCode`n") -Encoding ASCII -NoNewline
+Write-TextFile -Path $versionFile -Text ("VERSION_NAME=$Version`nVERSION_CODE=$newCode`n")
 Write-Step "version.properties now $Version / $newCode"
 
 # --- 4. build ---------------------------------------------------------------------------
@@ -178,7 +186,7 @@ Write-Step "APK: dist\$apkName ($([math]::Round((Get-Item $apkPath).Length / 1MB
 
 $hash = (Get-FileHash -Path $apkPath -Algorithm SHA256).Hash.ToLower()
 $checksumPath = "$apkPath.sha256"
-Set-Content -Path $checksumPath -Value "$hash  $apkName" -Encoding ASCII
+Write-TextFile -Path $checksumPath -Text "$hash  $apkName"
 Write-Step "SHA-256: $hash"
 
 # --- 5. commit, tag, push ---------------------------------------------------------------
@@ -216,9 +224,9 @@ if ($start -ge 0) {
     if ($end -lt 0) { $end = $lines.Count }
     $notes = @()
     for ($i = $start + 1; $i -lt $end; $i++) { $notes += $lines[$i] }
-    Set-Content -Path $notesPath -Value $notes -Encoding UTF8
+    Write-TextFile -Path $notesPath -Text ($notes -join [Environment]::NewLine)
 } else {
-    Set-Content -Path $notesPath -Value "Shobdo Keyboard v$Version" -Encoding UTF8
+    Write-TextFile -Path $notesPath -Text "Shobdo Keyboard v$Version"
 }
 
 $hasOrigin = @(& git remote) -contains 'origin'
