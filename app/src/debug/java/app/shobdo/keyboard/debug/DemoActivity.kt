@@ -66,7 +66,9 @@ class DemoActivity : Activity() {
             setHintTextColor(colour("#8FA3BF"))
             setTextColor(colour("#F8FAFC"))
             textSize = 16f
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            // No sentence capitalisation: it would arm shift on every fresh field and make
+            // the screenshot run show a capitalised keyboard on some shots and not others.
+            inputType = InputType.TYPE_CLASS_TEXT
             setBackgroundColor(colour("#1A2437"))
             setPadding(dp(20), dp(14), dp(20), dp(14))
         }
