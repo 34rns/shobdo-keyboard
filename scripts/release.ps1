@@ -32,7 +32,8 @@ function Write-TextFile {
     # the first property name unreadable to Java's Properties loader.
     param([string]$Path, [AllowEmptyString()][string]$Text)
     $utf8 = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText((Join-Path (Get-Location) $Path), $Text, $utf8)
+    $full = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path (Get-Location) $Path }
+    [System.IO.File]::WriteAllText($full, $Text, $utf8)
 }
 
 function Write-Step {
