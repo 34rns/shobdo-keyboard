@@ -19,7 +19,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Blossom**, **Desert Dune**, **Deep Space**, **Mint Fresh**, **Graphite Pro**, **Sky Day**,
   **Lava**, **Lavender Mist**, **Monsoon**, **Golden Hour** and **Ink and Paper**.
 - Every theme is now checked against both stops of its own background gradient, so key text
-  stays above the 4.5:1 floor at either end of the screen â€” the worst case across all 24 is
+  stays above the 4.5:1 floor at either end of the screen — the worst case across all 24 is
   5.06:1.
 
 ### Changed
@@ -56,9 +56,10 @@ access at all.
 ### Known limitations
 
 - No word list, so suggestions are limited to the phonetic candidate.
-- Automatic reph (Ã Â¦Â°Ã Â§Â) is not implemented: `kormo` gives Ã Â¦â€¢Ã Â¦Â°Ã Â¦Â®Ã Â§â€¹ rather than Ã Â¦â€¢Ã Â¦Â°Ã Â§ÂÃ Â¦Â®.
+- Automatic reph (র্) is not implemented: `kormo` gives করমো rather than কর্ম.
 - A few dictionary-dependent spellings differ from Avro; see
   [docs/BANGLISH.md](docs/BANGLISH.md).
 
-[Unreleased]: https://github.com/34rns/shobdo-keyboard/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/34rns/shobdo-keyboard/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/34rns/shobdo-keyboard/releases/tag/v0.2.0
 [0.1.0]: https://github.com/34rns/shobdo-keyboard/releases/tag/v0.1.0

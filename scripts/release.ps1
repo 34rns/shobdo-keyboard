@@ -86,7 +86,7 @@ $today = (Get-Date).ToString('yyyy-MM-dd')
 function Update-Changelog {
     param([string]$Version, [string]$Date, [string]$Path)
 
-    $lines = @(Get-Content $Path)
+    $lines = @(Get-Content $Path -Encoding UTF8)
     $existing = $lines | Where-Object { $_ -match ('^## \[' + [regex]::Escape($Version) + '\]') }
 
     if ($existing) {
@@ -214,7 +214,7 @@ if ($remotes -contains 'origin') {
 # --- 6. GitHub release ------------------------------------------------------------------
 
 $notesPath = Join-Path $env:TEMP "shobdo-notes-$Version.md"
-$lines = @(Get-Content $changelogFile)
+$lines = @(Get-Content $changelogFile -Encoding UTF8)
 $start = -1
 $end = -1
 for ($i = 0; $i -lt $lines.Count; $i++) {
