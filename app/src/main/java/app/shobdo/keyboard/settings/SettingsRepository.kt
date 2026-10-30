@@ -76,6 +76,11 @@ class SettingsRepository(context: Context) {
 
     // --- appearance ------------------------------------------------------------------
 
+    /** Whether Banglish remembers the candidates this user picks. */
+    var learnBanglish: Boolean
+        get() = preferences.getBoolean(KEY_LEARN, true)
+        set(value) = preferences.edit { putBoolean(KEY_LEARN, value) }
+
     var themeId: String
         get() = preferences.getString(KEY_THEME, DEFAULT_THEME) ?: DEFAULT_THEME
         set(value) = preferences.edit { putString(KEY_THEME, value) }
@@ -163,6 +168,8 @@ class SettingsRepository(context: Context) {
          * system night mode, which is the documented default.
          */
         const val DEFAULT_THEME = "system"
+
+        const val KEY_LEARN = "banglish_learn"
 
         const val KEY_ENGLISH = "enable_english"
         const val KEY_BANGLA = "enable_bangla"

@@ -34,6 +34,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.shobdo.keyboard.BuildInfo
 import app.shobdo.keyboard.R
 import app.shobdo.keyboard.banglish.BanglishEngine
+import app.shobdo.keyboard.banglish.BanglishLexicon
+import app.shobdo.keyboard.banglish.CandidateEngine
+import app.shobdo.keyboard.banglish.LearnedWords
+import app.shobdo.keyboard.banglish.SkeletonRules
+import java.io.File
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import app.shobdo.keyboard.settings.ImeStatus
 import app.shobdo.keyboard.settings.SettingsRepository
 import app.shobdo.keyboard.theme.ThemeManager
@@ -72,13 +80,24 @@ fun ShobdoApp() {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val engine = remember {
-        runCatching {
-            BanglishEngine.fromJson(
-                context.assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }
-            )
-        }.getOrNull()
+    // The word list is 1.3 MB, so the settings screen loads it off the main thread too.
+    var engine by remember { mutableStateOf<CandidateEngine?>(null) }
+    LaunchedEffect(Unit) {
+        engine = withContext(Dispatchers.IO) {
+            runCatching {
+                val rules = SkeletonRules.fromJson(
+                    context.assets.open(SkeletonRules.ASSET_PATH).bufferedReader().use { it.readText() }
+                )
+                val phonetic = BanglishEngine.fromJson(
+                    context.assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }
+                )
+                val lexiconText = context.assets.open(BanglishLexicon.ASSET_PATH)
+                    .bufferedReader().use { it.readText() }
+                CandidateEngine(phonetic, rules, BanglishLexicon.parse(lexiconText.lines()))
+            }.getOrNull()
+        }
     }
+    val learned = remember { LearnedWords(File(context.filesDir, LearnedWords.FILE_NAME)) }
 
     val current = Screen.valueOf(screen)
     val rootScreen = if (repository.onboardingComplete) Screen.HOME else Screen.ONBOARDING
@@ -171,7 +190,7 @@ fun ShobdoApp() {
             }
 
             Screen.BANGLISH -> androidx.compose.foundation.layout.Box(contentModifier) {
-                BanglishScreen(repository = repository, engine = engine)
+                BanglishScreen(repository = repository, engine = engine, learned = learned)
             }
 
             Screen.ABOUT -> androidx.compose.foundation.layout.Box(contentModifier) {

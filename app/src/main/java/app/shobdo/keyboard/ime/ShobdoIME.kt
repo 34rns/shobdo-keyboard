@@ -7,7 +7,13 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.ListPopupWindow
+import android.os.Handler
+import android.os.Looper
 import app.shobdo.keyboard.banglish.BanglishEngine
+import app.shobdo.keyboard.banglish.BanglishLexicon
+import app.shobdo.keyboard.banglish.CandidateEngine
+import app.shobdo.keyboard.banglish.LearnedWords
+import app.shobdo.keyboard.banglish.SkeletonRules
 import app.shobdo.keyboard.settings.OneHanded
 import app.shobdo.keyboard.settings.SettingsActivity
 import app.shobdo.keyboard.settings.SettingsRepository
@@ -42,6 +48,15 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     private var stripWord: String = ""
     private var candidatesExpanded: Boolean = false
 
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private var skeletonRules: SkeletonRules = SkeletonRules.empty()
+    private var phonetic: BanglishEngine? = null
+    private var learned: LearnedWords? = null
+
+    /** Filled on a background thread; the phonetic engine works without it. */
+    @Volatile
+    private var lexicon: BanglishLexicon = BanglishLexicon.empty()
+
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
         applyPreferences()
     }
@@ -51,7 +66,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         markRunning(true)
         settings = SettingsRepository(this)
         themeManager = ThemeManager(this)
-        banglish = BanglishSession(handler, engine(), settings.banglaCandidateFirst)
+        loadBanglishData()
+        banglish = newSession()
         settings.preferences.registerOnSharedPreferenceChangeListener(preferenceListener)
     }
 
@@ -113,10 +129,47 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
 
     // --- state -----------------------------------------------------------------------
 
-    private fun engine(): BanglishEngine {
-        val source = assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }
-        return BanglishEngine.fromJson(source)
+    /**
+     * The phonetic table is small and read immediately; the word list is 1.3 MB, so it is
+     * parsed on a background thread and the keyboard appears while it is still loading.
+     */
+    private fun loadBanglishData() {
+        skeletonRules = runCatching {
+            val text = assets.open(SkeletonRules.ASSET_PATH).bufferedReader().use { it.readText() }
+            SkeletonRules.fromJson(text)
+        }.getOrElse { SkeletonRules.empty() }
+        phonetic = runCatching {
+            val text = assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }
+            BanglishEngine.fromJson(text)
+        }.getOrNull()
+        learned = LearnedWords(File(filesDir, LearnedWords.FILE_NAME))
+        Thread({
+            val loaded = runCatching {
+                val text = assets.open(BanglishLexicon.ASSET_PATH).bufferedReader().use { it.readText() }
+                BanglishLexicon.parse(text.lines())
+            }.getOrElse { BanglishLexicon.empty() }
+            lexicon = loaded
+            uiHandler.post {
+                if (loaded.wordCount > 0) {
+                    banglish = newSession()
+                    updateSuggestions()
+                }
+            }
+        }, "shobdo-lexicon").apply { isDaemon = true }.start()
     }
+
+    private fun newSession(): BanglishSession = BanglishSession(
+        handler = handler,
+        engine = CandidateEngine(
+            phonetic = phonetic ?: BanglishEngine.fromJson(FALLBACK_RULES),
+            skeleton = skeletonRules,
+            lexicon = lexicon,
+            learned = learned
+        ),
+        banglaFirst = settings.banglaCandidateFirst,
+        learnEnabled = settings.learnBanglish,
+        learned = learned
+    )
 
     private fun restoreLanguage() {
         language = LanguageCycle.resolve(settings.lastLanguage, settings.enabledLanguages())
@@ -191,7 +244,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
             settings.backgroundBrightness,
             settings.backgroundBlur
         )
-        banglish = BanglishSession(handler, engine(), settings.banglaCandidateFirst)
+        banglish = newSession()
         val enabled = settings.enabledLanguages()
         if (language !in enabled) {
             language = LanguageCycle.resolve(settings.lastLanguage, enabled)
@@ -372,7 +425,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
 
     override fun onSuggestion(index: Int, text: String) {
         if (language != Language.BANGLISH) return
-        if (text == banglish.banglaCandidate) banglish.commitBangla() else banglish.commitRoman()
+        banglish.commit(text)
+        candidatesExpanded = false
         updateSuggestions()
     }
 
@@ -385,6 +439,14 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     fun userThemeDirectory(): File = File(filesDir, ThemeManager.DIR)
 
     companion object {
+
+        /** Used only if the shipped phonetic table cannot be read, so typing never dies. */
+        private const val FALLBACK_RULES =
+            """{"behavior":{"hasanta":"্","oAfterConsonant":{"trailing":"ো","medial":""}},
+                "rules":{"consonants":[{"roman":"k","bangla":"ক"}],
+                "vowelStandalone":[{"roman":"a","bangla":"আ"}],
+                "vowelKar":[],"jPhala":[],"signs":[],"digits":[]}}"""
+
         /**
          * Whether the system currently has this keyboard bound. Android 14 hides the
          * `default_input_method` setting from apps targeting SDK 34+, so the onboarding

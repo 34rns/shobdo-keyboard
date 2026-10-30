@@ -149,7 +149,18 @@
     <!-- review -->
     <string name="banglish_help">রোমান অক্ষরে লিখুন, কী-এর উপরে বাংলা শব্দ দেখা যাবে। স্পেস চাপলে বাংলা শব্দ বসবে; রোমান অপশনে চাপ দিলে ইংরেজি লেখাই থাকবে।</string>
     <!-- review -->
-    <string name="banglish_examples">উদাহরণ</string>
+    <string name="banglish_examples">উদাহরণ</string>    <!-- review -->
+    <string name="banglish_learn_title">শেখা</string>
+    <!-- review -->
+    <string name="banglish_learn_switch">আমার পছন্দ মনে রাখো</string>
+    <!-- review -->
+    <string name="banglish_learn_body">আপনি যে বাংলা শব্দ বেছে নেন তা মনে রাখা হবে, যাতে পরে সেটি আগে আসে। শুধু এই ডিভাইসে সংরক্ষিত, আর পাসওয়ার্ড লেখার সময় কখনো নয়।</string>
+    <!-- review -->
+    <string name="banglish_clear">শেখা শব্দ মুছে ফেলো</string>
+    <!-- review -->
+    <string name="banglish_cleared">মুছে ফেলা হয়েছে</string>
+    <!-- review -->
+    <string name="cd_banglish_learn">বাংলিশ পছন্দ শেখা</string>
 
     <!-- About -->
     <string name="about_title">অ্যাপ সম্পর্কে</string>
