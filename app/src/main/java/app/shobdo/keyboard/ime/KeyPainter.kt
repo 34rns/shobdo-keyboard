@@ -6,9 +6,12 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.Typeface
+import app.shobdo.keyboard.theme.KeyShape
 import app.shobdo.keyboard.theme.KeyboardTheme
 import app.shobdo.keyboard.theme.ThemeBackground
 import java.io.File
@@ -16,22 +19,19 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * All of the drawing.
+ * All of the key drawing.
  *
- * Every Paint is created once and only has its colour set, so a frame allocates nothing:
- * no Paint, no Rect, no String. Font metrics go into a reused object, and the gradient
- * shader is rebuilt only when the theme or the size changes.
+ * Every Paint is created once with the view and only has its colour or size set, so a frame
+ * allocates nothing: no Paint, no RectF, no String. Key backgrounds come from
+ * [KeyBackgroundCache] and icons from [IconSet], both pre-rendered.
  */
-class KeyPainter {
+class KeyPainter(private val icons: IconSet) {
 
-    private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
-    private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val chipPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val bubblePaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val shadePaint = Paint()
-    private val metrics = Paint.FontMetrics()
+    val box = PaintBox()
+    private val surfaces = KeyBackgroundCache()
+    private val path = Path()
+    private val scratch = RectF()
+    private val bubbleRect = RectF()
 
     private var shader: Shader? = null
     private var shaderKey: String = ""
@@ -39,35 +39,50 @@ class KeyPainter {
     private var bitmapKey: String = ""
     private val sourceRect = Rect()
     private val destRect = RectF()
-    private val scratch = RectF()
-
-    /** Stored so hit testing and drawing agree on where the chips are. */
-    val suggestionRects: ArrayList<RectF> = ArrayList(4)
 
     var keyTextSize: Float = 48f
         private set
+    var labelTextSize: Float = 30f
+        private set
 
-    fun setTextSize(keyHeight: Float, fontScale: Float) {
+    /** 0..1 slide of the spacebar language label after a language switch. */
+    var spaceSlide: Float = 1f
+
+    /** Bundled families, set once by the view. */
+    var latinTypeface: Typeface = Typeface.DEFAULT
+    var banglaTypeface: Typeface = Typeface.DEFAULT
+
+    fun setSizes(density: Float, keyHeight: Float, fontScale: Float) {
+        box.density = density
+        surfaces.density = density
         keyTextSize = (keyHeight * 0.42f * fontScale).coerceIn(18f, keyHeight * 0.62f)
+        labelTextSize = (keyHeight * 0.30f * fontScale).coerceIn(12f, keyHeight * 0.40f)
+    }
+
+    fun clearCaches() {
+        surfaces.clear()
+        icons.clear()
+        shader = null
+        shaderKey = ""
+        bitmap = null
+        bitmapKey = ""
     }
 
     // --- background ------------------------------------------------------------------
 
     fun drawBackground(canvas: Canvas, theme: KeyboardTheme, width: Float, height: Float) {
         when (val background = theme.background) {
-            is ThemeBackground.Solid -> {
-                canvas.drawColor(background.color)
-            }
+            is ThemeBackground.Solid -> canvas.drawColor(background.color)
             is ThemeBackground.Gradient -> {
                 val key = "${theme.id}:${width.toInt()}x${height.toInt()}"
                 if (shader == null || shaderKey != key) {
                     shader = buildGradient(background, width, height)
                     shaderKey = key
                 }
-                keyPaint.shader = shader
-                keyPaint.color = Color.WHITE
-                canvas.drawRect(0f, 0f, width, height, keyPaint)
-                keyPaint.shader = null
+                box.fill.shader = shader
+                box.fill.color = Color.WHITE
+                canvas.drawRect(0f, 0f, width, height, box.fill)
+                box.fill.shader = null
             }
             is ThemeBackground.Image -> {
                 canvas.drawColor(background.fallback)
@@ -75,14 +90,14 @@ class KeyPainter {
                 if (image != null) {
                     sourceRect.set(0, 0, image.width, image.height)
                     destRect.set(0f, 0f, width, height)
-                    keyPaint.shader = null
-                    keyPaint.alpha = 255
-                    keyPaint.isFilterBitmap = true
-                    canvas.drawBitmap(image, sourceRect, destRect, keyPaint)
+                    box.fill.shader = null
+                    box.fill.alpha = 255
+                    box.fill.isFilterBitmap = true
+                    canvas.drawBitmap(image, sourceRect, destRect, box.fill)
                     val darken = ((1f - background.brightness) * 200f).toInt().coerceIn(0, 200)
                     if (darken > 0) {
-                        shadePaint.color = Color.argb(darken, 0, 0, 0)
-                        canvas.drawRect(0f, 0f, width, height, shadePaint)
+                        box.shade.color = Color.argb(darken, 0, 0, 0)
+                        canvas.drawRect(0f, 0f, width, height, box.shade)
                     }
                 }
             }
@@ -106,11 +121,6 @@ class KeyPainter {
         )
     }
 
-    /**
-     * The background image, decoded at reduced resolution when blur is on: drawing a small
-     * bitmap stretched over the keyboard with filtering is a cheap blur that works on every
-     * supported API and allocates nothing per frame.
-     */
     private fun imageFor(path: String?, blur: Float): Bitmap? {
         if (path.isNullOrBlank()) return null
         val sample = (1 + blur / 3f).toInt().coerceIn(1, 32)
@@ -128,66 +138,225 @@ class KeyPainter {
 
     // --- keys ------------------------------------------------------------------------
 
+    /**
+     * Draws every key.
+     *
+     * @param activeIndex the key whose press animation is running, or -1
+     * @param progress 0 at rest, 1 fully pressed
+     */
     fun drawKeys(
         canvas: Canvas,
         theme: KeyboardTheme,
         keys: List<PlacedKey>,
-        pressedIndex: Int,
-        borders: Boolean
+        activeIndex: Int,
+        progress: Float,
+        borders: Boolean,
+        shift: ShiftState
     ) {
-        val radius = theme.keyRadius * density
-        strokePaint.strokeWidth = 1f * density
-
-        textPaint.isFakeBoldText = theme.bold
-        textPaint.textSize = keyTextSize
-
+        val radius = KeyboardMetrics.clampRadius(theme.keyRadius) * box.density
+        val strokeWidth = 1f * box.density
         for (index in keys.indices) {
             val placed = keys[index]
             val rect = placed.rect
-            val pressed = index == pressedIndex
-            if (placed.isSpecial) {
-                keyPaint.color = theme.specialFill
-                textPaint.color = theme.specialText
+            val active = index == activeIndex && progress > 0.01f
+            val scale = 1f - (1f - theme.pressedScale) * if (active) progress else 0f
+            val cx = rect.centerX()
+            val cy = rect.centerY()
+            if (scale > 0.99f) {
+                scratch.set(rect)
             } else {
-                keyPaint.color = if (pressed) theme.keyPressed else theme.keyFill
-                textPaint.color = theme.keyText
+                val insetX = rect.width() * (1f - scale) / 2f
+                val insetY = rect.height() * (1f - scale) / 2f
+                scratch.set(rect.left + insetX, rect.top + insetY, rect.right - insetX, rect.bottom - insetY)
             }
-            canvas.drawRoundRect(rect, radius, radius, keyPaint)
-            if (borders && theme.keyStroke != 0) {
-                strokePaint.color = theme.keyStroke
-                canvas.drawRoundRect(rect, radius, radius, strokePaint)
+
+            val isAction = placed.key.type == KeyType.ENTER
+            val fill = when {
+                isAction -> theme.accent
+                placed.isSpecial -> theme.specialFill
+                active -> lerp(theme.keyFill, theme.keyPressed, progress)
+                else -> theme.keyFill
             }
-            drawCentred(canvas, placed.label, rect.centerX(), rect.centerY(), if (placed.isSpecial) 0.86f else 1f)
+            val surface = KeySurface(
+                fill = fill,
+                radius = radius,
+                shape = theme.keyShape,
+                depth = theme.keyDepth
+            )
+            val bitmap = surfaces.bitmap(scratch.width().toInt(), scratch.height().toInt(), surface)
+            if (bitmap != null) {
+                canvas.drawBitmap(bitmap, scratch.left, scratch.top, null)
+            }
+
+            if (borders && theme.keyStroke != 0 && !isAction) {
+                box.stroke.color = theme.keyStroke
+                box.stroke.strokeWidth = strokeWidth
+                drawOutline(canvas, theme.keyShape, scratch, radius)
+            }
+
+            if (isAction) {
+                box.fill.color = theme.accent
+                drawActionLabel(canvas, theme, placed, scratch)
+            } else {
+                drawKeyContent(canvas, theme, placed, scratch, shift)
+            }
         }
     }
 
-    private fun drawCentred(canvas: Canvas, text: String, centerX: Float, centerY: Float, scale: Float) {
-        if (text.isEmpty()) return
-        val previous = textPaint.textSize
-        textPaint.textSize = previous * scale
-        textPaint.getFontMetrics(metrics)
-        val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
-        canvas.drawText(text, centerX, baseline, textPaint)
-        textPaint.textSize = previous
+    private fun drawOutline(canvas: Canvas, shape: KeyShape, rect: RectF, radius: Float) {
+        when (shape) {
+            KeyShape.PIXEL -> {
+                path.reset()
+                path.addRect(rect, Path.Direction.CW)
+                canvas.drawPath(path, box.stroke)
+            }
+            else -> canvas.drawRoundRect(rect, radius, radius, box.stroke)
+        }
     }
 
-    /** Measured width of a label, used to shrink long spacebar language names. */
-    fun measure(text: String): Float {
-        textPaint.textSize = keyTextSize
-        return textPaint.measureText(text)
+    private fun drawKeyContent(
+        canvas: Canvas,
+        theme: KeyboardTheme,
+        placed: PlacedKey,
+        rect: RectF,
+        shift: ShiftState
+    ) {
+        val cx = rect.centerX()
+        val cy = rect.centerY()
+        val iconId = IconSet.forKey(placed.key.type, shift)
+        if (iconId != 0) {
+            val size = (rect.height() * 0.46f).coerceAtMost(rect.width() * 0.66f)
+            icons.draw(canvas, iconId, cx, cy, size, theme.specialText)
+            return
+        }
+        if (placed.key.type == KeyType.GLOBE) {
+            drawLanguageMark(canvas, theme, rect)
+            return
+        }
+        if (placed.key.type == KeyType.SPACE) {
+            drawSpaceLabel(canvas, theme, placed.label, rect)
+            return
+        }
+        box.text.typeface = if (placed.label.any { it.code >= 0x0980 && it.code <= 0x09FF }) {
+            banglaTypeface
+        } else {
+            latinTypeface
+        }
+        box.text.isFakeBoldText = theme.bold
+        box.text.color = if (placed.isSpecial) theme.specialText else theme.keyText
+        if (placed.isSpecial) {
+            box.text.textSize = labelTextSize
+            box.drawFitted(canvas, placed.label, rect.left + 2f, rect.right - 2f, cy, labelTextSize)
+        } else {
+            box.text.textSize = keyTextSize
+            box.drawCentred(canvas, placed.label, cx, cy)
+        }
+        box.text.isFakeBoldText = false
+        box.text.typeface = Typeface.DEFAULT
+    }
+
+    /** The language name on the spacebar, sliding in when the language changes. */
+    private fun drawSpaceLabel(canvas: Canvas, theme: KeyboardTheme, label: String, rect: RectF) {
+        box.text.typeface = latinTypeface
+        box.text.isFakeBoldText = false
+        box.text.color = theme.specialText
+        box.text.alpha = (255 * (0.25f + 0.75f * spaceSlide)).toInt().coerceIn(0, 255)
+        val offset = (1f - spaceSlide) * 12f * box.density
+        box.text.textSize = labelTextSize
+        box.drawFitted(
+            canvas, label,
+            rect.left + 6f * box.density + offset, rect.right - 6f * box.density + offset,
+            rect.centerY(), labelTextSize
+        )
+        box.text.alpha = 255
+        box.text.typeface = Typeface.DEFAULT
+    }
+
+    /**
+     * The language key: Latin "A" beside Bangla "অ" with a thin double arrow underneath.
+     * A globe says "the world"; two scripts and a swap arrow say "change language".
+     */
+    private fun drawLanguageMark(canvas: Canvas, theme: KeyboardTheme, rect: RectF) {
+        val cx = rect.centerX()
+        val height = rect.height()
+        val glyphSize = (height * 0.34f).coerceAtMost(rect.width() * 0.34f)
+        val colour = theme.specialText
+        val markColour = theme.secondary ?: theme.specialText
+
+        box.text.typeface = latinTypeface
+        box.text.isFakeBoldText = false
+        box.text.color = colour
+        box.text.textSize = glyphSize
+        val latinWidth = box.text.measureText(OFF_LATIN) / 2f
+        box.text.typeface = banglaTypeface
+        val banglaWidth = box.text.measureText(OFF_BANGLA) / 2f
+        val gap = glyphSize * 0.30f
+        val total = latinWidth * 2 + banglaWidth * 2 + gap
+        val startX = cx - total / 2f + latinWidth
+        val glyphY = rect.centerY() - height * 0.06f
+
+        box.text.typeface = latinTypeface
+        box.text.textSize = glyphSize
+        box.drawCentred(canvas, OFF_LATIN, startX, glyphY)
+        box.text.typeface = banglaTypeface
+        box.drawCentred(canvas, OFF_BANGLA, startX + latinWidth * 2 + gap + banglaWidth, glyphY)
+
+        val arrowY = rect.centerY() + height * 0.30f
+        val left = rect.centerX() - total / 2f
+        val right = rect.centerX() + total / 2f
+        val head = 2.2f * box.density
+        box.stroke.color = markColour
+        box.stroke.strokeWidth = 1f * box.density
+        canvas.drawLine(left + head, arrowY, right - head, arrowY, box.stroke)
+        canvas.drawLine(left + head, arrowY, left + head * 2f, arrowY - head, box.stroke)
+        canvas.drawLine(left + head, arrowY, left + head * 2f, arrowY + head, box.stroke)
+        canvas.drawLine(right - head, arrowY, right - head * 2f, arrowY - head, box.stroke)
+        canvas.drawLine(right - head, arrowY, right - head * 2f, arrowY + head, box.stroke)
+        box.text.typeface = Typeface.DEFAULT
+    }
+
+    /** The action key is the one filled key: accent behind, readable label on top. */
+    private fun drawActionLabel(canvas: Canvas, theme: KeyboardTheme, placed: PlacedKey, rect: RectF) {
+        val onAccent = if (isLight(theme.accent)) Color.BLACK else Color.WHITE
+        if (placed.label == RETURN_GLYPH || placed.label.isEmpty()) {
+            val size = (rect.height() * 0.44f).coerceAtMost(rect.width() * 0.60f)
+            icons.draw(canvas, IconSet.RETURN, rect.centerX(), rect.centerY(), size, onAccent)
+            return
+        }
+        box.text.typeface = latinTypeface
+        box.text.isFakeBoldText = true
+        box.text.color = onAccent
+        box.text.textSize = labelTextSize
+        box.drawFitted(canvas, placed.label, rect.left + 2f, rect.right - 2f, rect.centerY(), labelTextSize)
+        box.text.isFakeBoldText = false
+        box.text.typeface = Typeface.DEFAULT
     }
 
     // --- press preview and long-press popup ------------------------------------------
 
     fun drawPreview(canvas: Canvas, theme: KeyboardTheme, placed: PlacedKey, keyHeight: Float) {
         val rect = placed.rect
-        scratch.set(rect.left - 4f * density, rect.top - keyHeight * 0.9f, rect.right + 4f * density, rect.top - 6f * density)
-        bubblePaint.color = theme.accent
-        canvas.drawRoundRect(scratch, theme.keyRadius * density, theme.keyRadius * density, bubblePaint)
-        textPaint.color = if (isLight(theme.accent)) Color.BLACK else Color.WHITE
-        textPaint.isFakeBoldText = false
-        textPaint.textSize = keyTextSize * 1.05f
-        drawCentred(canvas, placed.label, scratch.centerX(), scratch.centerY(), 1f)
+        bubbleRect.set(
+            rect.left - 4f * box.density, rect.top - keyHeight * 0.92f,
+            rect.right + 4f * box.density, rect.top - 6f * box.density
+        )
+        box.fill.color = theme.keyFill
+        box.fill.alpha = 255
+        box.fill.color = if (Color.alpha(theme.keyFill) < 255) blendOpaque(theme.keyFill) else theme.keyFill
+        canvas.drawRoundRect(bubbleRect, theme.keyRadius * box.density, theme.keyRadius * box.density, box.fill)
+        box.stroke.color = theme.accent
+        box.stroke.strokeWidth = 1.2f * box.density
+        canvas.drawRoundRect(bubbleRect, theme.keyRadius * box.density, theme.keyRadius * box.density, box.stroke)
+        box.text.typeface = latinTypeface
+        box.text.isFakeBoldText = false
+        box.text.color = theme.keyText
+        box.text.textSize = keyTextSize
+        box.drawFitted(
+            canvas, placed.label,
+            bubbleRect.left + 4f * box.density, bubbleRect.right - 4f * box.density,
+            bubbleRect.centerY(), keyTextSize
+        )
+        box.text.typeface = Typeface.DEFAULT
     }
 
     fun drawPopup(
@@ -200,90 +369,61 @@ class KeyPainter {
     ) {
         if (characters.isEmpty()) return
         val cell = keyHeight * 0.96f
-        val width = cell * characters.size + 8f * density
-        val height = cell + 8f * density
+        val width = cell * characters.size + 8f * box.density
+        val height = cell + 8f * box.density
         var left = placed.rect.centerX() - width / 2f
-        left = left.coerceAtLeast(4f * density)
-        val top = (placed.rect.top - height - 6f * density).coerceAtLeast(4f * density)
-        scratch.set(left, top, left + width, top + height)
+        left = left.coerceAtLeast(4f * box.density)
+        val top = (placed.rect.top - height - 6f * box.density).coerceAtLeast(4f * box.density)
+        bubbleRect.set(left, top, left + width, top + height)
 
-        bubblePaint.color = theme.dark.let { if (it) 0xFF1E2430.toInt() else 0xFFFFFFFF.toInt() }
-        canvas.drawRoundRect(scratch, theme.keyRadius * density, theme.keyRadius * density, bubblePaint)
-        strokePaint.color = theme.accent
-        strokePaint.strokeWidth = 1.5f * density
-        canvas.drawRoundRect(scratch, theme.keyRadius * density, theme.keyRadius * density, strokePaint)
+        box.fill.color = if (theme.dark) 0xFF1E2430.toInt() else 0xFFFFFFFF.toInt()
+        val radius = theme.keyRadius * box.density
+        canvas.drawRoundRect(bubbleRect, radius, radius, box.fill)
+        box.stroke.color = theme.accent
+        box.stroke.strokeWidth = 1.5f * box.density
+        canvas.drawRoundRect(bubbleRect, radius, radius, box.stroke)
 
         for (index in characters.indices) {
-            val cellLeft = scratch.left + 4f * density + cell * index
+            val cellLeft = bubbleRect.left + 4f * box.density + cell * index
             if (index == selected) {
-                keyPaint.color = theme.accent
-                val highlight = RectF(cellLeft + 2f * density, scratch.top + 4f * density, cellLeft + cell - 2f * density, scratch.bottom - 4f * density)
-                canvas.drawRoundRect(highlight, theme.keyRadius * density * 0.7f, theme.keyRadius * density * 0.7f, keyPaint)
+                box.fill.color = theme.accent
+                scratch.set(
+                    cellLeft + 2f * box.density, bubbleRect.top + 4f * box.density,
+                    cellLeft + cell - 2f * box.density, bubbleRect.bottom - 4f * box.density
+                )
+                canvas.drawRoundRect(scratch, radius * 0.7f, radius * 0.7f, box.fill)
             }
-            textPaint.color = if (index == selected) {
+            box.text.color = if (index == selected) {
                 if (isLight(theme.accent)) Color.BLACK else Color.WHITE
             } else {
                 if (theme.dark) 0xFFF8FAFC.toInt() else 0xFF111827.toInt()
             }
-            textPaint.textSize = keyTextSize * 0.92f
-            textPaint.isFakeBoldText = false
-            drawCentred(canvas, characters[index], cellLeft + cell / 2f, scratch.centerY(), 1f)
-        }
-        textPaint.isFakeBoldText = theme.bold
-    }
-
-    // --- suggestion bar --------------------------------------------------------------
-
-    /** Lays out the chips and returns their rects; call when the candidates change. */
-    fun layoutSuggestions(bar: RectF, candidates: List<String>, primaryIndex: Int) {
-        suggestionRects.clear()
-        if (bar.isEmpty || candidates.isEmpty()) return
-        textPaint.textSize = keyTextSize * 0.86f
-        var x = bar.left + 6f * density
-        for (candidate in candidates) {
-            val textWidth = textPaint.measureText(candidate)
-            val width = (textWidth + 26f * density).coerceAtMost(bar.width() * 0.62f)
-            val rect = RectF(x, bar.top + 5f * density, x + width, bar.bottom - 5f * density)
-            suggestionRects.add(rect)
-            x += width + 4f * density
-            if (x > bar.right) break
-        }
-    }
-
-    fun drawSuggestionBar(canvas: Canvas, theme: KeyboardTheme, bar: RectF, candidates: List<String>, primaryIndex: Int) {
-        if (bar.isEmpty) return
-        barPaint.color = theme.barBackground
-        canvas.drawRect(bar, barPaint)
-        textPaint.textSize = keyTextSize * 0.86f
-        textPaint.isFakeBoldText = false
-        for (index in suggestionRects.indices) {
-            if (index >= candidates.size) break
-            val rect = suggestionRects[index]
-            if (index == primaryIndex) {
-                chipPaint.color = theme.accent
-                canvas.drawRoundRect(rect, 8f * density, 8f * density, chipPaint)
-                textPaint.color = if (isLight(theme.accent)) Color.BLACK else Color.WHITE
+            box.text.typeface = if (characters[index].any { it.code in 0x0980..0x09FF }) {
+                banglaTypeface
             } else {
-                textPaint.color = theme.barText
+                latinTypeface
             }
-            drawCentred(canvas, candidates[index], rect.centerX(), rect.centerY(), 1f)
+            box.text.textSize = keyTextSize * 0.92f
+            box.drawCentred(canvas, characters[index], cellLeft + cell / 2f, bubbleRect.centerY())
         }
-        textPaint.isFakeBoldText = theme.bold
+        box.text.typeface = Typeface.DEFAULT
     }
 
-    /** Index of the chip at ([x], [y]) or -1. */
-    fun chipAt(x: Float, y: Float): Int {
-        for (index in suggestionRects.indices) {
-            val rect = suggestionRects[index]
-            if (rect.contains(x, y)) return index
-        }
-        return -1
-    }
+    private fun blendOpaque(color: Int): Int = Color.argb(255, Color.red(color), Color.green(color), Color.blue(color))
 
-    var density: Float = 2.5f
+    private fun lerp(from: Int, to: Int, t: Float): Int = Color.argb(
+        (Color.alpha(from) + (Color.alpha(to) - Color.alpha(from)) * t).toInt(),
+        (Color.red(from) + (Color.red(to) - Color.red(from)) * t).toInt(),
+        (Color.green(from) + (Color.green(to) - Color.green(from)) * t).toInt(),
+        (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t).toInt()
+    )
 
-    private fun isLight(color: Int): Boolean {
-        val luminance = 0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)
-        return luminance > 160
+    private fun isLight(color: Int): Boolean =
+        0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color) > 160
+
+    companion object {
+        const val RETURN_GLYPH = "⏎"
+        private const val OFF_LATIN = "A"
+        private const val OFF_BANGLA = "অ"
     }
 }

@@ -1,17 +1,13 @@
 package app.shobdo.keyboard.ime
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
-import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.util.SparseIntArray
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
@@ -20,9 +16,8 @@ import app.shobdo.keyboard.theme.KeyboardTheme
 
 /** Look-and-feel values the service copies out of settings so the view never touches storage. */
 data class KeyboardStyle(
-    val keyHeightDpPortrait: Float = 54f,
-    val keyHeightDpLandscape: Float = 42f,
-    val keySpacingDp: Float = 6f,
+    val keyHeightDpPortrait: Float = KeyboardMetrics.letterRowHeight,
+    val keyHeightDpLandscape: Float = 44f,
     val borders: Boolean = true,
     val popup: Boolean = true,
     val preview: Boolean = true,
@@ -38,9 +33,9 @@ data class KeyboardStyle(
 /**
  * The whole keyboard: one custom View that draws every key on a Canvas and handles touch.
  *
- * There is no child view anywhere, which is what keeps fast typing cheap — a frame is one
- * background draw, N rounded rectangles, N labels and a suggestion bar, all with reused
- * Paint objects.
+ * There is no child view anywhere. A frame is one background draw, one strip, N cached key
+ * bitmaps and N labels — no allocation, because the Paints, the key bitmaps and the icon
+ * bitmaps are all created before the frame starts.
  */
 class KeyboardView(context: Context) : View(context) {
 
@@ -54,52 +49,51 @@ class KeyboardView(context: Context) : View(context) {
         fun onLanguagePicker()
         fun onSuggestion(index: Int, text: String)
         fun onShiftChanged(state: ShiftState)
+        fun onStripAction(action: StripAction)
+        fun onToggleCandidates()
     }
 
     var listener: Listener? = null
 
     private val geometry = KeyboardGeometry()
-    private val painter = KeyPainter()
+    private val icons = IconSet(context)
+    private val painter = KeyPainter(icons)
+    private val stripPainter = StripPainter(painter.box, icons)
     private val shift = ShiftStateMachine()
     private val repeater = BackspaceRepeater()
+    private val feedback = KeyFeedback(context)
+    private val press = PressAnimation()
     private val handler = Handler(Looper.getMainLooper())
     private val pointers = SparseIntArray()
+    private val density = resources.displayMetrics.density
 
     private var layout: KeyboardLayout? = null
     private var theme: KeyboardTheme? = null
     private var language: Language = Language.ENGLISH
     private var style = KeyboardStyle()
-    private var suggestions: List<String> = emptyList()
-    private var suggestionPrimary: Int = 0
+    private var stripModel = StripModel()
 
-    private var keyHeightPx = 0f
-    private var keySpacingPx = 0f
-    private var barHeightPx = 0f
+    private var letterRowPx = 0f
     private var navInsetPx = 0
+    private var panelBottom = 0f
 
     private var pressedIndex = -1
     private var pressedPointer = -1
     private var popupShowing = false
     private var popupSelected = 0
     private var popupChars: List<String> = emptyList()
-    private var chipPressed = -1
 
-    private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        (context.getSystemService(VibratorManager::class.java))?.defaultVibrator
-    } else {
-        @Suppress("DEPRECATION")
-        (context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)
-    }
-
-    private val audioManager: AudioManager? =
-        context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+    private var stripChip = -1
+    private var stripExpand = false
+    private var stripAction: StripAction? = null
+    private var panelPressed = -1
+    private var labelSwapAt = 0L
 
     init {
-        painter.density = resources.displayMetrics.density
         isClickable = true
         isFocusable = false
         isHapticFeedbackEnabled = false
-        keySpacingPx = style.keySpacingDp * resources.displayMetrics.density
+        applyFeedback()
     }
 
     // --- public API used by the service ----------------------------------------------
@@ -111,31 +105,29 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     fun setTheme(keyboardTheme: KeyboardTheme) {
+        if (theme?.id != keyboardTheme.id || theme != keyboardTheme) painter.clearCaches()
         theme = keyboardTheme
         rebuild()
     }
 
     fun setStyle(newStyle: KeyboardStyle) {
-        val needsRelayout = newStyle.oneHanded != style.oneHanded ||
-            newStyle.borders != style.borders ||
-            newStyle.shiftUsesAlternates != style.shiftUsesAlternates ||
-            newStyle.numberRow != style.numberRow
         style = newStyle
-        keySpacingPx = newStyle.keySpacingDp * resources.displayMetrics.density
-        if (needsRelayout) {
-            requestLayout()
-        }
+        applyFeedback()
+        requestLayout()
         rebuild()
     }
 
     fun setLanguage(newLanguage: Language) {
-        language = newLanguage
+        if (language != newLanguage) {
+            language = newLanguage
+            labelSwapAt = SystemClock.uptimeMillis()
+            scheduleAnimation()
+        }
         rebuild()
     }
 
-    fun setSuggestions(candidates: List<String>, primaryIndex: Int) {
-        suggestions = candidates
-        suggestionPrimary = primaryIndex
+    fun setStrip(model: StripModel) {
+        stripModel = model
         requestLayout()
         rebuild()
     }
@@ -147,39 +139,27 @@ class KeyboardView(context: Context) : View(context) {
         }
     }
 
-    fun setShiftLocked(locked: Boolean) {
-        shift.reset()
-        if (locked) shift.shiftPressed(SystemClock.uptimeMillis())
-        rebuild()
-    }
-
-    fun clearShift() {
-        if (shift.state != ShiftState.OFF) {
-            shift.reset()
-            rebuild()
-        }
-    }
-
     val currentShift: ShiftState get() = shift.state
-
-    /** Bangla and Banglish pages draw Bangla; used to pick the number row and shift behaviour. */
-    fun usesNumberRow(page: KeyboardLayout): Boolean = style.numberRow || page.numberRowIndex == null
 
     // --- measure and layout ----------------------------------------------------------
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val landscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        val desiredDp = if (landscape) style.keyHeightDpLandscape else style.keyHeightDpPortrait
-        keyHeightPx = desiredDp * resources.displayMetrics.density
-        keySpacingPx = style.keySpacingDp * resources.displayMetrics.density
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val letterRowDp = if (landscape) style.keyHeightDpLandscape else style.keyHeightDpPortrait
+        letterRowPx = letterRowDp * density
+        painter.setSizes(density, letterRowPx, style.fontScale)
 
         val page = layout
-        val rows = page?.let { visibleRowCount(it) } ?: 0
-        barHeightPx = if (suggestions.isEmpty()) 0f else BAR_HEIGHT_DP * resources.displayMetrics.density
-        val height = (barHeightPx + rows * keyHeightPx + (rows - 1).coerceAtLeast(0) * keySpacingPx + navInsetPx).toInt()
-        painter.setTextSize(keyHeightPx, style.fontScale)
-        setMeasuredDimension(width, height)
+        val visible = page?.let { visibleRows(it) }.orEmpty()
+        val navInsetDp = navInsetPx / density
+        val height = KeyboardMetrics.totalHeight(
+            rowCount = visible.size,
+            navInsetDp = navInsetDp,
+            numberRowDp = letterRowPx * NUMBER_ROW_RATIO / density,
+            letterRowDp = letterRowDp
+        ) * density
+        setMeasuredDimension(width, height.toInt())
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -187,32 +167,42 @@ class KeyboardView(context: Context) : View(context) {
         rebuild()
     }
 
-    private fun visibleRowCount(page: KeyboardLayout): Int =
-        page.rows.size - if (!style.numberRow && page.numberRowIndex != null) 1 else 0
-
-    private fun hiddenRows(page: KeyboardLayout): Set<Int> =
-        if (!style.numberRow && page.numberRowIndex != null) setOf(page.numberRowIndex) else emptySet()
+    private fun visibleRows(page: KeyboardLayout): List<IndexedValue<List<KeyModel>>> =
+        page.rows.withIndex().filter { style.numberRow || it.index != page.numberRowIndex }
 
     private fun rebuild() {
         val page = layout ?: return
         if (width == 0) return
-        val density = resources.displayMetrics.density
-        val top = barHeightPx
+        val visible = visibleRows(page)
+        val heights = FloatArray(visible.size) { index ->
+            if (visible[index].index == page.numberRowIndex) letterRowPx * NUMBER_ROW_RATIO else letterRowPx
+        }
+        val stripTop = KeyboardMetrics.topPadding * density
+        val stripBottom = (KeyboardMetrics.topPadding + KeyboardMetrics.suggestionStripHeight) * density
+        geometry.setStrip(0f, stripTop, width.toFloat(), stripBottom)
         geometry.layout(
             layout = page,
             width = width.toFloat(),
-            keyHeight = keyHeightPx,
-            horizontalPadding = 3f * density,
-            spacing = keySpacingPx,
-            top = top,
-            barHeight = barHeightPx,
+            top = KeyboardMetrics.firstRowTop() * density,
+            rowHeights = heights,
+            horizontalPadding = KeyboardMetrics.horizontalPadding * density,
+            spacing = KeyboardMetrics.keyHorizontalGap * density,
+            rowGap = KeyboardMetrics.rowVerticalGap * density,
             shift = shift.state,
             shiftUsesAlternates = style.shiftUsesAlternates,
             spaceLabel = language.displayName,
             oneHanded = style.oneHanded,
-            hiddenRowIndexes = hiddenRows(page)
+            hiddenRowIndexes = if (style.numberRow) emptySet() else setOfNotNull(page.numberRowIndex)
         )
-        painter.layoutSuggestions(geometry.barRect, suggestions, suggestionPrimary)
+        stripPainter.layout(geometry.barRect, stripModel, density)
+        panelBottom = 0f
+        if (stripModel.expanded && stripModel.hasCandidates) {
+            val top = geometry.barRect.bottom + KeyboardMetrics.gapBelowStrip * density / 2f
+            val height = stripPainter.layoutPanel(
+                geometry.barRect, top, width.toFloat(), stripModel.candidates.size, density
+            )
+            panelBottom = top + height
+        }
         invalidate()
     }
 
@@ -236,19 +226,43 @@ class KeyboardView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         val currentTheme = theme ?: return
+        val now = SystemClock.uptimeMillis()
         painter.drawBackground(canvas, currentTheme, width.toFloat(), height.toFloat())
-        painter.drawSuggestionBar(canvas, currentTheme, geometry.barRect, suggestions, suggestionPrimary)
-        painter.drawKeys(canvas, currentTheme, geometry.keys, if (popupShowing) -1 else pressedIndex, style.borders)
+        stripPainter.draw(canvas, currentTheme, geometry.barRect, stripModel)
+        painter.spaceSlide = labelSlide(now)
+        painter.drawKeys(
+            canvas = canvas,
+            theme = currentTheme,
+            keys = geometry.keys,
+            activeIndex = pressedIndex,
+            progress = if (popupShowing) 0f else press.progress(now),
+            borders = style.borders,
+            shift = shift.state
+        )
         if (popupShowing && pressedIndex in geometry.keys.indices) {
-            painter.drawPopup(canvas, currentTheme, geometry.keys[pressedIndex], popupChars, popupSelected, keyHeightPx)
-        } else if (pressedIndex in geometry.keys.indices && style.preview) {
-            painter.drawPreview(canvas, currentTheme, geometry.keys[pressedIndex], keyHeightPx)
+            painter.drawPopup(
+                canvas, currentTheme, geometry.keys[pressedIndex], popupChars, popupSelected, letterRowPx
+            )
+        } else if (pressedIndex in geometry.keys.indices && style.preview &&
+            press.progress(now) > 0.5f
+        ) {
+            painter.drawPreview(canvas, currentTheme, geometry.keys[pressedIndex], letterRowPx)
         }
+        if (stripModel.expanded) stripPainter.drawPanel(canvas, currentTheme, stripModel)
+    }
+
+    private fun labelSlide(now: Long): Float {
+        if (labelSwapAt == 0L) return 1f
+        val elapsed = now - labelSwapAt
+        if (elapsed >= KeyboardMetrics.labelSwapMs) {
+            labelSwapAt = 0L
+            return 1f
+        }
+        return (elapsed.toFloat() / KeyboardMetrics.labelSwapMs).coerceIn(0f, 1f)
     }
 
     // --- touch -----------------------------------------------------------------------
 
-    /** Announced to accessibility services when a key is released. */
     override fun performClick(): Boolean {
         super.performClick()
         return true
@@ -259,8 +273,14 @@ class KeyboardView(context: Context) : View(context) {
             MotionEvent.ACTION_DOWN -> {
                 val x = event.x
                 val y = event.y
-                if (!geometry.barRect.isEmpty && y <= geometry.barRect.bottom) {
-                    chipPressed = painter.chipAt(x, y)
+                if (stripModel.expanded && y < panelBottom) {
+                    panelPressed = stripPainter.panelAt(x, y)
+                    return true
+                }
+                if (y <= geometry.barRect.bottom) {
+                    stripChip = stripPainter.chipAt(x, y)
+                    stripExpand = stripPainter.expandHit(x, y)
+                    stripAction = stripPainter.actionAt(x, y)
                     return true
                 }
                 down(event.getPointerId(0), x, y)
@@ -272,46 +292,66 @@ class KeyboardView(context: Context) : View(context) {
             MotionEvent.ACTION_MOVE -> move(event)
             MotionEvent.ACTION_POINTER_UP -> {
                 val index = event.actionIndex
-                up(event.getPointerId(index), event.getX(index), event.getY(index))
+                up(event.getPointerId(index))
             }
             MotionEvent.ACTION_UP -> {
                 performClick()
-                if (chipPressed >= 0) {
-                    val chosen = painter.chipAt(event.x, event.y)
-                    if (chosen >= 0 && chosen == chipPressed) {
-                        suggestions.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
+                if (panelPressed >= 0) {
+                    val chosen = stripPainter.panelAt(event.x, event.y)
+                    if (chosen == panelPressed) {
+                        stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
                     }
-                    chipPressed = -1
+                    panelPressed = -1
                     return true
                 }
-                up(event.getPointerId(0), event.x, event.y)
+                if (stripChip >= 0 || stripExpand || stripAction != null) {
+                    handleStripRelease(event.x, event.y)
+                    return true
+                }
+                up(event.getPointerId(0))
             }
             MotionEvent.ACTION_CANCEL -> cancelTouch()
         }
         return true
     }
 
+    private fun handleStripRelease(x: Float, y: Float) {
+        if (stripExpand && stripPainter.expandHit(x, y)) {
+            listener?.onToggleCandidates()
+        } else if (stripAction != null && stripPainter.actionAt(x, y) == stripAction) {
+            stripAction?.let { listener?.onStripAction(it) }
+        } else if (stripChip >= 0) {
+            val chosen = stripPainter.chipAt(x, y)
+            if (chosen == stripChip) {
+                stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
+            }
+        }
+        stripChip = -1
+        stripExpand = false
+        stripAction = null
+    }
+
     private fun down(pointerId: Int, x: Float, y: Float) {
         val index = geometry.findKey(x, y)
         pointers.put(pointerId, index)
         if (index < 0) return
-        if (pressedIndex < 0) {
-            pressedIndex = index
-            pressedPointer = pointerId
-            val key = geometry.keys[index].key
-            if (key.type == KeyType.BACKSPACE) {
-                listener?.onBackspace()
-                feedback(isDelete = true)
-                repeater.press(SystemClock.uptimeMillis())
-                handler.postDelayed(repeatRunnable, BackspaceRepeater.INTERVAL_MS)
-            } else {
-                feedback(isDelete = false)
-            }
-            if (key.hasLongPress || key.type == KeyType.GLOBE) {
-                handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
-            }
-            invalidate()
+        if (pressedIndex >= 0) return
+        pressedIndex = index
+        pressedPointer = pointerId
+        press.press(SystemClock.uptimeMillis())
+        val key = geometry.keys[index].key
+        if (key.type == KeyType.BACKSPACE) {
+            listener?.onBackspace()
+            feedback.key(isDelete = true)
+            repeater.press(SystemClock.uptimeMillis())
+            handler.postDelayed(repeatRunnable, BackspaceRepeater.INTERVAL_MS)
+        } else {
+            feedback.key()
         }
+        if (key.hasLongPress || key.type == KeyType.GLOBE) {
+            handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
+        }
+        scheduleAnimation()
     }
 
     private fun move(event: MotionEvent) {
@@ -323,17 +363,16 @@ class KeyboardView(context: Context) : View(context) {
                 val rect = geometry.keys[index].rect
                 val count = popupChars.size
                 if (count > 0) {
-                    val cell = keyHeightPx * 0.96f
+                    val cell = letterRowPx * 0.96f
                     val left = (rect.centerX() - (cell * count + 8f) / 2f)
-                        .coerceAtLeast(4f * resources.displayMetrics.density)
-                    val offset = ((event.getX(i) - left) / cell).toInt()
-                    popupSelected = offset.coerceIn(0, count - 1)
+                        .coerceAtLeast(4f * density)
+                    popupSelected = (((event.getX(i) - left) / cell).toInt()).coerceIn(0, count - 1)
                     invalidate()
                 }
                 continue
             }
             val rect = geometry.keys[index].rect
-            val slop = 12f * resources.displayMetrics.density
+            val slop = 12f * density
             if (event.getX(i) < rect.left - slop || event.getX(i) > rect.right + slop ||
                 event.getY(i) < geometry.barRect.bottom - slop || event.getY(i) > rect.bottom + slop * 3
             ) {
@@ -343,7 +382,7 @@ class KeyboardView(context: Context) : View(context) {
         }
     }
 
-    private fun up(pointerId: Int, x: Float, y: Float) {
+    private fun up(pointerId: Int) {
         val index = pointers.get(pointerId, -1)
         pointers.delete(pointerId)
         if (popupShowing && pointerId == pressedPointer) {
@@ -351,20 +390,22 @@ class KeyboardView(context: Context) : View(context) {
             popupShowing = false
             popupChars = emptyList()
             cancelTimers()
-            pressedIndex = -1
-            pressedPointer = -1
+            releasePress()
             if (alternate != null) {
                 listener?.onText(alternate)
-                if (shift.state == ShiftState.ONCE) shift.characterTyped()
+                consumeShiftOnce()
             }
-            invalidate()
             return
         }
         if (index in geometry.keys.indices) commit(geometry.keys[index])
         cancelTimers()
-        pressedIndex = -1
+        releasePress()
+    }
+
+    private fun releasePress() {
+        press.release(SystemClock.uptimeMillis())
         pressedPointer = -1
-        invalidate()
+        scheduleAnimation()
     }
 
     private fun commit(placed: PlacedKey) {
@@ -375,7 +416,7 @@ class KeyboardView(context: Context) : View(context) {
                 listener?.onShiftChanged(state)
                 rebuild()
             }
-            KeyType.BACKSPACE -> Unit // handled on press and by the repeat runnable
+            KeyType.BACKSPACE -> Unit
             KeyType.ENTER -> listener?.onEnter()
             KeyType.SPACE -> {
                 listener?.onSpace()
@@ -401,8 +442,8 @@ class KeyboardView(context: Context) : View(context) {
 
     private fun cancelTouch() {
         cancelTimers()
-        repeater.release()
         pointers.clear()
+        press.reset()
         pressedIndex = -1
         pressedPointer = -1
         popupShowing = false
@@ -416,12 +457,32 @@ class KeyboardView(context: Context) : View(context) {
         repeater.release()
     }
 
+    // --- animation -------------------------------------------------------------------
+
+    private val animationTick = object : Runnable {
+        override fun run() {
+            if (press.isAnimating(SystemClock.uptimeMillis())) {
+                invalidate()
+                handler.postDelayed(this, FRAME_MS)
+            } else {
+                pressedIndex = -1
+                invalidate()
+            }
+        }
+    }
+
+    private fun scheduleAnimation() {
+        handler.removeCallbacks(animationTick)
+        postOnAnimation(animationTick)
+    }
+
     private val longPressRunnable = Runnable {
         val index = pressedIndex
         if (index !in geometry.keys.indices) return@Runnable
         val key = geometry.keys[index].key
         if (key.type == KeyType.GLOBE) {
             cancelTimers()
+            press.reset()
             pressedIndex = -1
             invalidate()
             listener?.onLanguagePicker()
@@ -431,7 +492,7 @@ class KeyboardView(context: Context) : View(context) {
             popupShowing = true
             popupChars = key.longPressChars
             popupSelected = 0
-            vv()
+            feedback.longPress()
             invalidate()
         }
     }
@@ -448,47 +509,22 @@ class KeyboardView(context: Context) : View(context) {
         }
     }
 
-    private fun feedback(isDelete: Boolean) {
-        if (style.haptic && (isDelete || pressedIndex >= 0)) vv()
-        if (style.sound) {
-            audioManager?.playSoundEffect(
-                if (isDelete) AudioManager.FX_KEYPRESS_DELETE else AudioManager.FX_KEYPRESS_STANDARD,
-                0.6f
-            )
-        }
-    }
-
-    private fun vv() {
-        if (!style.haptic) return
-        val vibratorService = vibrator ?: return
-        if (!vibratorService.hasVibrator()) return
-        val duration = when (style.hapticStrength) {
-            0 -> 8L
-            2 -> 22L
-            else -> 14L
-        }
-        val amplitude = when (style.hapticStrength) {
-            0 -> 70
-            2 -> 200
-            else -> 130
-        }
-        runCatching {
-            vibratorService.vibrate(VibrationEffect.createOneShot(duration, amplitude))
-        }
-    }
-
-    /** Exposed for the service, which uses the platform's light tap on onboarding. */
-    fun tapFeedback() {
-        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+    private fun applyFeedback() {
+        feedback.haptic = style.haptic
+        feedback.strength = style.hapticStrength
+        feedback.sound = style.sound
     }
 
     override fun onDetachedFromWindow() {
         cancelTimers()
+        handler.removeCallbacks(animationTick)
+        painter.clearCaches()
         super.onDetachedFromWindow()
     }
 
     companion object {
-        const val BAR_HEIGHT_DP = 40f
         const val LONG_PRESS_MS = 350L
+        private const val FRAME_MS = 16L
+        private const val NUMBER_ROW_RATIO = 0.88f
     }
 }

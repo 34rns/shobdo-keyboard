@@ -34,6 +34,46 @@ object Argb {
         "#%02X%02X%02X%02X".format(alpha(color), red(color), green(color), blue(color))
 }
 
+/** How a key sits on the background. No blurred shadows anywhere: depth is an edge. */
+enum class KeyDepth(val json: String) {
+    FLAT("flat"),
+
+    /** A 1dp darker edge under the key. */
+    LIP("lip"),
+
+    /** A hard 2px block edge, for the pixel theme. */
+    BLOCK("block");
+
+    companion object {
+        fun fromJson(value: String?): KeyDepth =
+            entries.firstOrNull { it.json == value } ?: FLAT
+    }
+}
+
+enum class KeyShape(val json: String) {
+    ROUND("round"),
+    SQUIRCLE("squircle"),
+
+    /** Stair-stepped corners drawn without anti-aliasing. */
+    PIXEL("pixel");
+
+    companion object {
+        fun fromJson(value: String?): KeyShape =
+            entries.firstOrNull { it.json == value } ?: ROUND
+    }
+}
+
+/** Which bundled font family a theme asks for. */
+enum class FontRole(val json: String) {
+    DEFAULT("default"),
+    PIXEL("pixel");
+
+    companion object {
+        fun fromJson(value: String?): FontRole =
+            entries.firstOrNull { it.json == value } ?: DEFAULT
+    }
+}
+
 sealed interface ThemeBackground {
     data class Solid(val color: Int) : ThemeBackground
 
@@ -66,6 +106,15 @@ data class KeyboardTheme(
     val fontScale: Float,
     val bold: Boolean,
     val keySpacing: Float,
+    /** Schema v2 tokens. Defaults keep a v1 theme file loadable. */
+    val keyDepth: KeyDepth = KeyDepth.FLAT,
+    val keyShape: KeyShape = KeyShape.ROUND,
+    val fontRole: FontRole = FontRole.DEFAULT,
+    val spaceAccentLine: Boolean = false,
+    val pressedScale: Float = 0.97f,
+    /** Second accent: only the language key mark and the spacebar line may use it. */
+    val secondary: Int? = null,
+    val schemaVersion: Int = 2,
     /** False for a theme the user created, which survives app updates. */
     val builtIn: Boolean = true,
     /** The JSON it was read from, kept so duplicate and export write the same file. */
@@ -92,7 +141,14 @@ object ThemeJson {
         val accent: String = "#FF888888",
         val suggestionBar: SuggestionBarDto = SuggestionBarDto(),
         val font: FontDto = FontDto(),
-        val keySpacing: Float = 6f
+        val keySpacing: Float = 6f,
+        val schemaVersion: Int = 2,
+        val keyDepth: String? = null,
+        val keyShape: String? = null,
+        val fontRole: String? = null,
+        val spaceAccentLine: Boolean = false,
+        val pressedScale: Float = 0.97f,
+        val secondary: String? = null
     )
 
     @Serializable
@@ -173,6 +229,13 @@ object ThemeJson {
             fontScale = dto.font.scale,
             bold = dto.font.bold,
             keySpacing = dto.keySpacing,
+            keyDepth = KeyDepth.fromJson(dto.keyDepth),
+            keyShape = KeyShape.fromJson(dto.keyShape),
+            fontRole = FontRole.fromJson(dto.fontRole),
+            spaceAccentLine = dto.spaceAccentLine,
+            pressedScale = dto.pressedScale.coerceIn(0.85f, 1f),
+            secondary = dto.secondary?.let { colour(it, "secondary") },
+            schemaVersion = dto.schemaVersion,
             builtIn = builtIn,
             rawJson = source
         )

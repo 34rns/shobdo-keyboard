@@ -3,47 +3,242 @@
   "name": "বাংলা (প্রভাত)",
   "rows": [
     [
-      { "label": "দ", "code": "দ", "long": ["ধ"] },
-      { "label": "ূ", "code": "ূ", "long": ["ঊ"] },
-      { "label": "ী", "code": "ী", "long": ["ঈ"] },
-      { "label": "র", "code": "র", "long": ["ড়"] },
-      { "label": "ট", "code": "ট", "long": ["ঠ"] },
-      { "label": "এ", "code": "এ", "long": ["ঐ"] },
-      { "label": "ু", "code": "ু", "long": ["উ"] },
-      { "label": "ি", "code": "ি", "long": ["ই"] },
-      { "label": "ও", "code": "ও", "long": ["ঔ"] },
-      { "label": "প", "code": "প", "long": ["ফ"] }
+      {
+        "label": "দ",
+        "code": "দ",
+        "long": [
+          "ধ"
+        ]
+      },
+      {
+        "label": "ূ",
+        "code": "ূ",
+        "long": [
+          "ঊ"
+        ]
+      },
+      {
+        "label": "ী",
+        "code": "ী",
+        "long": [
+          "ঈ"
+        ]
+      },
+      {
+        "label": "র",
+        "code": "র",
+        "long": [
+          "ড়"
+        ]
+      },
+      {
+        "label": "ট",
+        "code": "ট",
+        "long": [
+          "ঠ"
+        ]
+      },
+      {
+        "label": "এ",
+        "code": "এ",
+        "long": [
+          "ঐ"
+        ]
+      },
+      {
+        "label": "ু",
+        "code": "ু",
+        "long": [
+          "উ"
+        ]
+      },
+      {
+        "label": "ি",
+        "code": "ি",
+        "long": [
+          "ই"
+        ]
+      },
+      {
+        "label": "ও",
+        "code": "ও",
+        "long": [
+          "ঔ"
+        ]
+      },
+      {
+        "label": "প",
+        "code": "প",
+        "long": [
+          "ফ"
+        ]
+      }
     ],
     [
-      { "label": "া", "code": "া", "long": ["অ"] },
-      { "label": "স", "code": "স", "long": ["ষ"] },
-      { "label": "ড", "code": "ড", "long": ["ঢ"] },
-      { "label": "ত", "code": "ত", "long": ["থ"] },
-      { "label": "গ", "code": "গ", "long": ["ঘ"] },
-      { "label": "হ", "code": "হ", "long": ["ঃ"] },
-      { "label": "জ", "code": "জ", "long": ["ঝ"] },
-      { "label": "ক", "code": "ক", "long": ["খ"] },
-      { "label": "ল", "code": "ল", "long": ["ং"] }
+      {
+        "label": "া",
+        "code": "া",
+        "long": [
+          "অ"
+        ]
+      },
+      {
+        "label": "স",
+        "code": "স",
+        "long": [
+          "ষ"
+        ]
+      },
+      {
+        "label": "ড",
+        "code": "ড",
+        "long": [
+          "ঢ"
+        ]
+      },
+      {
+        "label": "ত",
+        "code": "ত",
+        "long": [
+          "থ"
+        ]
+      },
+      {
+        "label": "গ",
+        "code": "গ",
+        "long": [
+          "ঘ"
+        ]
+      },
+      {
+        "label": "হ",
+        "code": "হ",
+        "long": [
+          "ঃ"
+        ]
+      },
+      {
+        "label": "জ",
+        "code": "জ",
+        "long": [
+          "ঝ"
+        ]
+      },
+      {
+        "label": "ক",
+        "code": "ক",
+        "long": [
+          "খ"
+        ]
+      },
+      {
+        "label": "ল",
+        "code": "ল",
+        "long": [
+          "ং"
+        ]
+      }
     ],
     [
-      { "label": "⇧", "code": "", "type": "shift", "widthWeight": 1.5 },
-      { "label": "য়", "code": "য়", "long": ["য"] },
-      { "label": "শ", "code": "শ", "long": ["ঢ়"] },
-      { "label": "চ", "code": "চ", "long": ["ছ"] },
-      { "label": "আ", "code": "আ", "long": ["ঋ"] },
-      { "label": "ব", "code": "ব", "long": ["ভ"] },
-      { "label": "ন", "code": "ন", "long": ["ণ"] },
-      { "label": "ম", "code": "ম", "long": ["ঙ"] },
-      { "label": "⌫", "code": "", "type": "backspace", "widthWeight": 1.5 }
+      {
+        "label": "⇧",
+        "code": "",
+        "type": "shift",
+        "widthWeight": 1.5
+      },
+      {
+        "label": "য়",
+        "code": "য়",
+        "long": [
+          "য"
+        ]
+      },
+      {
+        "label": "শ",
+        "code": "শ",
+        "long": [
+          "ঢ়"
+        ]
+      },
+      {
+        "label": "চ",
+        "code": "চ",
+        "long": [
+          "ছ"
+        ]
+      },
+      {
+        "label": "আ",
+        "code": "আ",
+        "long": [
+          "ঋ"
+        ]
+      },
+      {
+        "label": "ব",
+        "code": "ব",
+        "long": [
+          "ভ"
+        ]
+      },
+      {
+        "label": "ন",
+        "code": "ন",
+        "long": [
+          "ণ"
+        ]
+      },
+      {
+        "label": "ম",
+        "code": "ম",
+        "long": [
+          "ঙ"
+        ]
+      },
+      {
+        "label": "⌫",
+        "code": "",
+        "type": "backspace",
+        "widthWeight": 1.5
+      }
     ],
     [
-      { "label": "কার", "code": "", "type": "symbols", "widthWeight": 1.5 },
-      { "label": "১২৩", "code": "", "type": "symbols", "widthWeight": 1.5 },
-      { "label": ",", "code": ",", "type": "comma" },
-      { "label": "space", "code": " ", "type": "space", "widthWeight": 3.0 },
-      { "label": "।", "code": "।", "type": "period" },
-      { "label": "🌐", "code": "", "type": "globe", "widthWeight": 1.5 },
-      { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
+      {
+        "label": "কার",
+        "code": "",
+        "type": "symbols",
+        "widthWeight": 1.25
+      },
+      {
+        "label": ",",
+        "code": ",",
+        "type": "comma",
+        "widthWeight": 0.8
+      },
+      {
+        "label": "",
+        "code": "",
+        "type": "globe",
+        "widthWeight": 1.0
+      },
+      {
+        "label": "space",
+        "code": " ",
+        "type": "space",
+        "widthWeight": 4.0
+      },
+      {
+        "label": ".",
+        "code": ".",
+        "type": "period",
+        "widthWeight": 0.8
+      },
+      {
+        "label": "⏎",
+        "code": "\n",
+        "type": "enter",
+        "widthWeight": 1.5
+      }
     ]
   ]
 }

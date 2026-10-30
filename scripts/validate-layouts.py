@@ -194,7 +194,9 @@ def check_layout(path):
                 continue
 
             label = key.get("label")
-            if not isinstance(label, str) or not label.strip():
+            # The language key draws its own mark on the canvas, so it may carry no label.
+            draws_itself = key.get("type") == "globe"
+            if not isinstance(label, str) or (not label.strip() and not draws_itself):
                 errors.append(f"{at}: 'label' must be a non-empty string")
 
             if not isinstance(key.get("code"), str):

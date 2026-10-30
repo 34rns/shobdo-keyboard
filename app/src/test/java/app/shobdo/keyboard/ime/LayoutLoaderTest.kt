@@ -32,10 +32,32 @@ class LayoutLoaderTest {
         assertEquals(listOf("é", "è", "ê", "ë"), e.longPressChars)
         assertEquals(KeyType.NORMAL, e.type)
 
-        val space = layout.rows[4][2]
+        val space = layout.rows[4][3]
         assertEquals(KeyType.SPACE, space.type)
         assertEquals(" ", space.code)
         assertEquals(4f, space.widthWeight)
+    }
+
+    @Test
+    fun `every page uses the same six key bottom row with the same weights`() {
+        val expected = listOf(
+            KeyType.SYMBOLS to 1.25f,
+            KeyType.COMMA to 0.8f,
+            KeyType.GLOBE to 1.0f,
+            KeyType.SPACE to 4.0f,
+            KeyType.PERIOD to 0.8f,
+            KeyType.ENTER to 1.5f
+        )
+        val files = File(assetsDir, "layouts").listFiles { f -> f.extension == "json" }.orEmpty()
+        for (file in files) {
+            val layout = LayoutLoader.parse(file.readText(Charsets.UTF_8))
+            val bottom = layout.rows.last()
+            assertEquals("${file.name} bottom row size", expected.size, bottom.size)
+            bottom.forEachIndexed { index, key ->
+                assertEquals("${file.name} bottom key $index type", expected[index].first, key.type)
+                assertEquals("${file.name} bottom key $index weight", expected[index].second, key.widthWeight)
+            }
+        }
     }
 
     @Test
