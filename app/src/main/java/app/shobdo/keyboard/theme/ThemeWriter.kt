@@ -18,6 +18,7 @@ object ThemeWriter {
 
     fun toJson(theme: KeyboardTheme): String {
         val root = buildJsonObject {
+            put("schemaVersion", 2)
             put("id", theme.id)
             put("name", theme.name)
             put("dark", theme.dark)
@@ -58,6 +59,7 @@ object ThemeWriter {
                 put("text", Argb.toHex(theme.specialText))
             }
             put("accent", Argb.toHex(theme.accent))
+            theme.secondary?.let { put("secondary", Argb.toHex(it)) }
             putJsonObject("suggestionBar") {
                 put("background", Argb.toHex(theme.barBackground))
                 put("text", Argb.toHex(theme.barText))
@@ -67,6 +69,11 @@ object ThemeWriter {
                 put("bold", theme.bold)
             }
             put("keySpacing", theme.keySpacing)
+            put("keyDepth", theme.keyDepth.json)
+            put("keyShape", theme.keyShape.json)
+            put("fontRole", theme.fontRole.json)
+            put("spaceAccentLine", theme.spaceAccentLine)
+            put("pressedScale", theme.pressedScale)
         }
         return json.encodeToString(JsonObject.serializer(), root) + "\n"
     }

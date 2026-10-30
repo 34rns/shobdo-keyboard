@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "id": "studio_light",
+  "name": "Studio Light",
+  "dark": false,
+  "background": {
+    "type": "solid",
+    "color": "#E7E9EE"
+  },
+  "key": {
+    "fill": "#FFFFFF",
+    "pressed": "#D5D9E1",
+    "text": "#14171C",
+    "radius": 10,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#CDD1D9",
+    "text": "#14171C"
+  },
+  "accent": "#3B6FFF",
+  "suggestionBar": {
+    "background": "#CDD1D9",
+    "text": "#14171C"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

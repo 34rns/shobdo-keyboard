@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "id": "sakura",
+  "name": "Sakura",
+  "dark": false,
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#FBEFF3",
+      "#F6DCE6"
+    ],
+    "angle": 90
+  },
+  "key": {
+    "fill": "#FFFFFF",
+    "pressed": "#F7E3EB",
+    "text": "#3A1F2B",
+    "radius": 12,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#F0C9D6",
+    "text": "#3A1F2B"
+  },
+  "accent": "#E44378",
+  "suggestionBar": {
+    "background": "#F0C9D6",
+    "text": "#3A1F2B"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

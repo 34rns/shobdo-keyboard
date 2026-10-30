@@ -158,7 +158,11 @@ class SettingsRepository(context: Context) {
 
     companion object {
         const val FILE = "shobdo_settings"
-        const val DEFAULT_THEME = "midnight_glass"
+        /**
+         * Not a theme id: the keyboard resolves this to Studio Light or Studio Dark from the
+         * system night mode, which is the documented default.
+         */
+        const val DEFAULT_THEME = "system"
 
         const val KEY_ENGLISH = "enable_english"
         const val KEY_BANGLA = "enable_bangla"

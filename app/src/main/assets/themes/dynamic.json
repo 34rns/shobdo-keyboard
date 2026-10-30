@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "id": "dynamic",
+  "name": "Dynamic",
+  "dark": true,
+  "dynamic": true,
+  "background": {
+    "type": "solid",
+    "color": "#1B1B1F"
+  },
+  "key": {
+    "fill": "#26282D",
+    "pressed": "#34373D",
+    "text": "#F2F3F5",
+    "radius": 10,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#191B1F",
+    "text": "#F2F3F5"
+  },
+  "accent": "#7C9CFF",
+  "suggestionBar": {
+    "background": "#191B1F",
+    "text": "#F2F3F5"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

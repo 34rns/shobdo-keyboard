@@ -1,6 +1,7 @@
 package app.shobdo.keyboard.theme
 
 import android.content.Context
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -18,14 +19,18 @@ class ThemeManager(private val context: Context) {
     private val userDir: File
         get() = File(context.filesDir, DIR).apply { if (!exists()) mkdirs() }
 
-    /** Themes shipped in the APK, in a stable order so the grid does not shuffle. */
+    /** Themes shipped in the APK, in gallery order so the grid does not shuffle. */
     fun builtIn(): List<KeyboardTheme> {
         val names = context.assets.list(DIR).orEmpty()
             .filter { it.endsWith(".json") }
             .sorted()
-        return names.mapNotNull { name ->
+        val parsed = names.mapNotNull { name ->
             val source = context.assets.open("$DIR/$name").bufferedReader().use { it.readText() }
             runCatching { ThemeJson.parse(source, builtIn = true) }.getOrNull()
+        }
+        return parsed.sortedBy { theme ->
+            val position = ORDER.indexOf(theme.id)
+            if (position < 0) ORDER.size else position
         }
     }
 
@@ -41,10 +46,26 @@ class ThemeManager(private val context: Context) {
 
     fun byId(id: String): KeyboardTheme? = all().firstOrNull { it.id == id }
 
-    /** The theme to draw with. Falls back to the default if the stored id no longer exists. */
+    /**
+     * The theme to draw with.
+     *
+     * A stored id from an older version is migrated first, so nobody loses their look after an
+     * update, and Dynamic falls back to Studio Light or Dark below Android 12 rather than
+     * drawing a palette it cannot read.
+     */
     fun active(themeId: String): KeyboardTheme {
-        val theme = byId(themeId) ?: builtIn().firstOrNull() ?: fallbackTheme()
-        return if (theme.dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamic(theme) else theme
+        val migrated = ThemeMigration.migrate(themeId)
+        val theme = byId(migrated) ?: byId(themeId) ?: default()
+        if (!theme.dynamic) return theme
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamic(theme) else default()
+    }
+
+    /** Studio Light in light mode, Studio Dark in dark mode: the keyboard's own default. */
+    fun default(): KeyboardTheme {
+        val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        val id = if (night) STUDIO_DARK else STUDIO_LIGHT
+        return byId(id) ?: builtIn().firstOrNull() ?: fallbackTheme()
     }
 
     /**
@@ -93,7 +114,7 @@ class ThemeManager(private val context: Context) {
      */
     fun save(theme: KeyboardTheme): Result<KeyboardTheme> {
         if (theme.id.isBlank()) return Result.failure(ThemeFormatException("A theme needs an id"))
-        val failures = ThemeContrast.failures(theme)
+        val failures = ThemeContrast.failures(theme) + listOfNotNull(ThemeContrast.accentFailure(theme))
         if (failures.isNotEmpty()) {
             return Result.failure(ThemeFormatException(failures.joinToString("; ")))
         }
@@ -157,6 +178,15 @@ class ThemeManager(private val context: Context) {
 
     companion object {
         const val DIR = "themes"
+
+        const val STUDIO_LIGHT = "studio_light"
+        const val STUDIO_DARK = "studio_dark"
+
+        /** Gallery order, chosen so the two studio themes open the list. */
+        val ORDER: List<String> = listOf(
+            STUDIO_LIGHT, STUDIO_DARK, "onyx", "frost", "aurora", "sakura", "tokyo_night",
+            "pixel_arcade", "cassette", "obsidian_gold", "cloudline", "evergreen", "dynamic"
+        )
 
         /** Suggested file name when exporting the theme with [KeyboardTheme.id]. */
         fun exportFileName(theme: KeyboardTheme): String = "shobdo-${theme.id}.json"

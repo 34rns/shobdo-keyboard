@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "id": "cassette",
+  "name": "Cassette",
+  "dark": false,
+  "background": {
+    "type": "solid",
+    "color": "#F2E8D5"
+  },
+  "key": {
+    "fill": "#FFF7E6",
+    "pressed": "#EBDDC2",
+    "text": "#3B2A1A",
+    "radius": 9,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#E3D2B3",
+    "text": "#3B2A1A"
+  },
+  "accent": "#D9531E",
+  "secondary": "#2A7F7F",
+  "suggestionBar": {
+    "background": "#E3D2B3",
+    "text": "#3B2A1A"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}
