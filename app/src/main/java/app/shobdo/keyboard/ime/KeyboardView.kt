@@ -93,6 +93,10 @@ class KeyboardView(context: Context) : View(context) {
         isClickable = true
         isFocusable = false
         isHapticFeedbackEnabled = false
+        val fonts = FontSet(context)
+        painter.latinTypeface = fonts.latinRegular
+        painter.banglaTypeface = fonts.banglaRegular
+        painter.pixelTypeface = fonts.pixel
         applyFeedback()
     }
 
@@ -194,6 +198,7 @@ class KeyboardView(context: Context) : View(context) {
             oneHanded = style.oneHanded,
             hiddenRowIndexes = if (style.numberRow) emptySet() else setOfNotNull(page.numberRowIndex)
         )
+        painter.numberRowIndex = page.numberRowIndex ?: -1
         stripPainter.layout(geometry.barRect, stripModel, density)
         panelBottom = 0f
         if (stripModel.expanded && stripModel.hasCandidates) {

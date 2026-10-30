@@ -11,6 +11,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import app.shobdo.keyboard.theme.FontRole
 import app.shobdo.keyboard.theme.KeyShape
 import app.shobdo.keyboard.theme.KeyboardTheme
 import app.shobdo.keyboard.theme.ThemeBackground
@@ -51,12 +52,20 @@ class KeyPainter(private val icons: IconSet) {
     /** Bundled families, set once by the view. */
     var latinTypeface: Typeface = Typeface.DEFAULT
     var banglaTypeface: Typeface = Typeface.DEFAULT
+    var pixelTypeface: Typeface = Typeface.DEFAULT
+
+    /** Row index of the optional number row, so it can use its own smaller size. */
+    var numberRowIndex: Int = -1
+
+    private var numberRowTextSize: Float = 0f
 
     fun setSizes(density: Float, keyHeight: Float, fontScale: Float) {
         box.density = density
         surfaces.density = density
-        keyTextSize = (keyHeight * 0.42f * fontScale).coerceIn(18f, keyHeight * 0.62f)
-        labelTextSize = (keyHeight * 0.30f * fontScale).coerceIn(12f, keyHeight * 0.40f)
+        // 22sp letters and 15sp labels at the 50dp row height, both scaled by the setting.
+        keyTextSize = (22f * density * fontScale).coerceIn(18f, keyHeight * 0.62f)
+        labelTextSize = (15f * density * fontScale).coerceIn(11f, keyHeight * 0.40f)
+        numberRowTextSize = (18f * density * fontScale).coerceIn(10f, keyHeight * 0.50f)
     }
 
     fun clearCaches() {
@@ -159,10 +168,13 @@ class KeyPainter(private val icons: IconSet) {
             val placed = keys[index]
             val rect = placed.rect
             val active = index == activeIndex && progress > 0.01f
+            val isPixel = theme.keyShape == KeyShape.PIXEL
             val scale = 1f - (1f - theme.pressedScale) * if (active) progress else 0f
-            val cx = rect.centerX()
-            val cy = rect.centerY()
-            if (scale > 0.99f) {
+            if (isPixel) {
+                // The pixel theme presses by moving the key down a block, never by scaling it.
+                scratch.set(rect)
+                if (active) scratch.offset(0f, 2f * box.density * progress)
+            } else if (scale > 0.99f) {
                 scratch.set(rect)
             } else {
                 val insetX = rect.width() * (1f - scale) / 2f
@@ -237,19 +249,24 @@ class KeyPainter(private val icons: IconSet) {
             drawSpaceLabel(canvas, theme, placed.label, rect)
             return
         }
-        box.text.typeface = if (placed.label.any { it.code >= 0x0980 && it.code <= 0x09FF }) {
-            banglaTypeface
-        } else {
-            latinTypeface
+        val glyph = renderable(placed.label)
+        val isBangla = glyph.any { it.code in 0x0980..0x09FF }
+        box.text.typeface = when {
+            isBangla -> banglaTypeface
+            !placed.isSpecial && theme.fontRole == FontRole.PIXEL -> pixelTypeface
+            else -> latinTypeface
         }
         box.text.isFakeBoldText = theme.bold
         box.text.color = if (placed.isSpecial) theme.specialText else theme.keyText
         if (placed.isSpecial) {
             box.text.textSize = labelTextSize
-            box.drawFitted(canvas, placed.label, rect.left + 2f, rect.right - 2f, cy, labelTextSize)
+            box.drawFitted(canvas, glyph, rect.left + 2f, rect.right - 2f, cy, labelTextSize)
         } else {
-            box.text.textSize = keyTextSize
-            box.drawCentred(canvas, placed.label, cx, cy)
+            val base = if (placed.row == numberRowIndex) numberRowTextSize else keyTextSize
+            // Bangla x-height is smaller than Latin at the same point size; nudge it up so a
+            // Bangla key and a Latin key read as the same weight.
+            box.text.textSize = if (isBangla) base * BANGLA_OPTICAL_SCALE else base
+            box.drawCentred(canvas, glyph, cx, cy)
         }
         box.text.isFakeBoldText = false
         box.text.typeface = Typeface.DEFAULT
@@ -270,6 +287,32 @@ class KeyPainter(private val icons: IconSet) {
         )
         box.text.alpha = 255
         box.text.typeface = Typeface.DEFAULT
+        if (theme.spaceAccentLine) {
+            val lineWidth = rect.width() * 0.16f
+            val y = rect.bottom - 9f * box.density
+            box.stroke.color = (theme.secondary ?: theme.accent)
+            box.stroke.strokeWidth = 1f * box.density
+            canvas.drawLine(rect.centerX() - lineWidth / 2f, y, rect.centerX() + lineWidth / 2f, y, box.stroke)
+        }
+    }
+
+    /**
+     * A lone kar or hasanta cannot be drawn on its own: the shaper places it on a dotted
+     * circle (U+25CC), which reads as a missing glyph. Prefixing the base letter ক gives a
+     * correctly shaped, meaningful key — কি, কু, ক্ — while the key still types only the mark.
+     */
+    private fun renderable(label: String): String {
+        if (label.isEmpty()) return label
+        return if (isBengaliMark(label[0])) BENGALI_BASE + label else label
+    }
+
+    private fun isBengaliMark(character: Char): Boolean {
+        val code = character.code
+        return code in 0x0981..0x0983 ||
+            code == 0x09BC ||
+            code in 0x09BE..0x09CD ||
+            code == 0x09D7 ||
+            code in 0x09E2..0x09E3
     }
 
     /**
@@ -352,7 +395,7 @@ class KeyPainter(private val icons: IconSet) {
         box.text.color = theme.keyText
         box.text.textSize = keyTextSize
         box.drawFitted(
-            canvas, placed.label,
+            canvas, renderable(placed.label),
             bubbleRect.left + 4f * box.density, bubbleRect.right - 4f * box.density,
             bubbleRect.centerY(), keyTextSize
         )
@@ -404,7 +447,7 @@ class KeyPainter(private val icons: IconSet) {
                 latinTypeface
             }
             box.text.textSize = keyTextSize * 0.92f
-            box.drawCentred(canvas, characters[index], cellLeft + cell / 2f, bubbleRect.centerY())
+            box.drawCentred(canvas, renderable(characters[index]), cellLeft + cell / 2f, bubbleRect.centerY())
         }
         box.text.typeface = Typeface.DEFAULT
     }
@@ -423,6 +466,12 @@ class KeyPainter(private val icons: IconSet) {
 
     companion object {
         const val RETURN_GLYPH = "⏎"
+
+        /** Optical size correction for Bangla, whose glyphs sit smaller than Latin. */
+        private const val BANGLA_OPTICAL_SCALE = 1.08f
+
+        /** Base letter a bare kar is drawn on, so no key shows a dotted circle. */
+        private const val BENGALI_BASE = "ক"
         private const val OFF_LATIN = "A"
         private const val OFF_BANGLA = "অ"
     }
