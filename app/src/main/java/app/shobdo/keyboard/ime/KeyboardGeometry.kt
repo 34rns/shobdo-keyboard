@@ -19,15 +19,16 @@ class PlacedKey(
 /**
  * Turns a layout into rectangles.
  *
- * This runs only when something changes size (rotation, split screen, settings) — never from
+ * Runs only when something changes size (rotation, split screen, settings) — never from
  * onDraw — so drawing stays allocation-free. Rows are normalised independently, which is what
- * lets a ten-key number row sit above a nine-key letter row.
+ * lets a ten-key number row sit above a nine-key letter row, and each row takes its height
+ * from the metrics table so the number row can be shorter.
  */
 class KeyboardGeometry {
 
     val keys: ArrayList<PlacedKey> = ArrayList(56)
 
-    /** Suggestion bar rect; empty when the bar is hidden. */
+    /** Suggestion strip rect; set by [setStrip] before [layout]. */
     val barRect: RectF = RectF()
 
     /** Left edge of the key area, which is not zero in one-handed mode. */
@@ -37,20 +38,35 @@ class KeyboardGeometry {
     var keyboardRight: Float = 0f
         private set
 
+    /** Bottom of the last row, so the view can check its measured height. */
+    var bottom: Float = 0f
+        private set
+
+    private var hitSlopX: Float = 0f
+    private var hitSlopY: Float = 0f
+
+
+    fun setStrip(left: Float, top: Float, right: Float, bottom: Float) {
+        if (bottom > top) barRect.set(left, top, right, bottom) else barRect.setEmpty()
+    }
+
     /**
      * Lays the page out and returns the total height used.
      *
-     * @param top y of the first row (below the suggestion bar)
-     * @param hiddenRowIndexes rows to skip (the number row when the setting is off)
+     * @param top y of the first visible row
+     * @param rowHeights px height of each visible row, in order; a missing entry falls back
+     *   to the previous one so a caller cannot leave a zero-height row
+     * @param spacing horizontal gap between keys, which is also the horizontal hit slop
+     * @param rowGap vertical gap between rows, which is also the vertical hit slop
      */
     fun layout(
         layout: KeyboardLayout,
         width: Float,
-        keyHeight: Float,
+        top: Float,
+        rowHeights: FloatArray,
         horizontalPadding: Float,
         spacing: Float,
-        top: Float,
-        barHeight: Float,
+        rowGap: Float,
         shift: ShiftState,
         shiftUsesAlternates: Boolean,
         spaceLabel: String?,
@@ -68,20 +84,29 @@ class KeyboardGeometry {
         }
         keyboardRight = keyboardLeft + availableWidth
 
-        if (barHeight > 0f) {
-            barRect.set(keyboardLeft, 0f, keyboardRight, barHeight)
-        } else {
-            barRect.setEmpty()
-        }
+        hitSlopX = spacing / 2f
+        hitSlopY = rowGap / 2f
 
         val shifted = shift != ShiftState.OFF
-        var y = top
-        for ((rowIndex, row) in visibleRows) {
-            val rowWeight = KeyboardLayout.rowWeight(row)
-            val keysWidth = availableWidth - 2 * horizontalPadding - spacing * (row.size - 1)
+        val heights = FloatArray(visibleRows.size) { position ->
+            rowHeights.getOrNull(position)
+                ?: rowHeights.getOrNull(position - 1)
+                ?: rowHeights.firstOrNull()
+                ?: 0f
+        }
+        val tops = KeyboardMetrics.rowTops(top, heights, rowGap)
+        visibleRows.forEachIndexed { position, (rowIndex, row) ->
+            val rowHeight = heights[position]
+            val y = tops[position]
+            val widths = KeyboardMetrics.keyWidths(
+                availableWidth = availableWidth,
+                horizontalPadding = horizontalPadding,
+                gap = spacing,
+                weights = FloatArray(row.size) { row[it].widthWeight }
+            )
             var x = keyboardLeft + horizontalPadding
             row.forEachIndexed { column, key ->
-                val keyWidth = keysWidth * (key.widthWeight / rowWeight)
+                val keyWidth = widths[column]
                 val label = if (key.type == KeyType.SPACE && spaceLabel != null) {
                     spaceLabel
                 } else {
@@ -94,20 +119,34 @@ class KeyboardGeometry {
                     label = label,
                     code = key.displayCode(shifted, shiftUsesAlternates)
                 )
-                placed.rect.set(x, y, x + keyWidth, y + keyHeight)
+                placed.rect.set(x, y, x + keyWidth, y + rowHeight)
                 keys.add(placed)
                 x += keyWidth + spacing
             }
-            y += keyHeight + spacing
         }
-        return y - spacing
+        bottom = when {
+            keys.isEmpty() -> top
+            else -> tops.last() + heights.last()
+        }
+        return bottom
     }
 
-    /** Index of the key under ([x], [y]), or -1. A small slop keeps fast taps forgiving. */
-    fun findKey(x: Float, y: Float, slop: Float = 0f): Int {
+    /**
+     * Index of the key under ([x], [y]), or -1.
+     *
+     * Exact containment is checked first so a finger that is clearly on a key always gets
+     * that key. Only then is the gap between keys assigned, which is what removes dead zones
+     * between rows and between neighbours.
+     */
+    fun findKey(x: Float, y: Float): Int {
+        for (index in keys.indices) {
+            if (keys[index].rect.contains(x, y)) return index
+        }
         for (index in keys.indices) {
             val rect = keys[index].rect
-            if (x >= rect.left - slop && x <= rect.right + slop && y >= rect.top - slop && y <= rect.bottom + slop) {
+            if (x >= rect.left - hitSlopX && x <= rect.right + hitSlopX &&
+                y >= rect.top - hitSlopY && y <= rect.bottom + hitSlopY
+            ) {
                 return index
             }
         }

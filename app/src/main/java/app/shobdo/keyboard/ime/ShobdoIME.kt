@@ -1,5 +1,6 @@
 package app.shobdo.keyboard.ime
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.inputmethodservice.InputMethodService
 import android.view.View
@@ -7,6 +8,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.ListPopupWindow
 import app.shobdo.keyboard.banglish.BanglishEngine
+import app.shobdo.keyboard.settings.OneHanded
+import app.shobdo.keyboard.settings.SettingsActivity
 import app.shobdo.keyboard.settings.SettingsRepository
 import app.shobdo.keyboard.theme.KeyboardTheme
 import app.shobdo.keyboard.theme.ThemeManager
@@ -34,6 +37,10 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     private var language: Language = Language.ENGLISH
     private var pageIndex: Int = 0
     private var lastTypedWasSentenceEnd: Boolean = false
+
+    /** The word shown on the left of the strip while typing English or Banglish. */
+    private var stripWord: String = ""
+    private var candidatesExpanded: Boolean = false
 
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
         applyPreferences()
@@ -163,7 +170,6 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         return KeyboardStyle(
             keyHeightDpPortrait = height.dpPortrait,
             keyHeightDpLandscape = height.dpLandscape,
-            keySpacingDp = theme?.keySpacing ?: 6f,
             borders = settings.keyBorders,
             popup = settings.keyPreview,
             preview = settings.keyPreview,
@@ -195,13 +201,65 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         updateSuggestions()
     }
 
+    /**
+     * Rebuilds the strip. English shows the word being typed plus quick actions; Banglish
+     * shows candidates. A password field gets neither: the word would be the password.
+     */
     private fun updateSuggestions() {
         val view = keyboardView ?: return
-        if (language == Language.BANGLISH && !handler.isPasswordField && banglish.isActive) {
-            view.setSuggestions(banglish.candidates(), banglish.primaryIndex())
+        val composing = language == Language.BANGLISH && !handler.isPasswordField && banglish.isActive
+        if (!composing) candidatesExpanded = false
+        val model = if (composing) {
+            StripModel(
+                candidates = banglish.candidates(),
+                primary = banglish.primaryIndex(),
+                expanded = candidatesExpanded
+            )
         } else {
-            view.setSuggestions(emptyList(), 0)
+            StripModel(word = if (handler.isPasswordField) "" else stripWord)
         }
+        view.setStrip(model)
+    }
+
+    // --- strip actions ---------------------------------------------------------------
+
+    override fun onStripAction(action: StripAction) {
+        when (action) {
+            StripAction.THEME -> cycleTheme()
+            StripAction.ONE_HANDED -> cycleOneHanded()
+            StripAction.SETTINGS -> openSettings()
+            StripAction.COLLAPSE -> requestHideSelf(0)
+            StripAction.EXPAND -> onToggleCandidates()
+        }
+    }
+
+    override fun onToggleCandidates() {
+        if (!banglish.isActive) return
+        candidatesExpanded = !candidatesExpanded
+        updateSuggestions()
+    }
+
+    private fun cycleTheme() {
+        val themes = themeManager.all()
+        if (themes.isEmpty()) return
+        val current = themes.indexOfFirst { it.id == settings.themeId }
+        settings.themeId = themes[(current + 1) % themes.size].id
+        applyPreferences()
+    }
+
+    private fun cycleOneHanded() {
+        settings.oneHanded = when (settings.oneHanded) {
+            OneHanded.OFF -> OneHanded.LEFT
+            OneHanded.LEFT -> OneHanded.RIGHT
+            OneHanded.RIGHT -> OneHanded.OFF
+        }
+        applyPreferences()
+    }
+
+    private fun openSettings() {
+        startActivity(
+            Intent(this, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 
     // --- listener --------------------------------------------------------------------
@@ -225,6 +283,12 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
             Language.ENGLISH -> handler.commit(text)
         }
         lastTypedWasSentenceEnd = text.endsWith(".") || text.endsWith("!") || text.endsWith("?") || text.endsWith("।")
+        if (text.length == 1 && (text[0].isLetterOrDigit() || language == Language.BANGLA)) {
+            stripWord = if (language == Language.BANGLA) "" else stripWord.takeLast(23) + text
+        } else {
+            stripWord = ""
+        }
+        updateSuggestions()
     }
 
     override fun onSpace() {
@@ -244,6 +308,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
             keyboardView?.armShiftOnce()
         }
         lastTypedWasSentenceEnd = false
+        stripWord = ""
+        updateSuggestions()
     }
 
     override fun onBackspace() {
@@ -258,12 +324,16 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
             }
             Language.ENGLISH -> handler.deleteSurrounding(1)
         }
+        stripWord = stripWord.dropLast(1)
+        updateSuggestions()
     }
 
     override fun onEnter() {
         bangla.finish()
         if (language == Language.BANGLISH && !handler.isPasswordField) banglish.commitBangla()
         handler.performEnter()
+        stripWord = ""
+        candidatesExpanded = false
         updateSuggestions()
         lastTypedWasSentenceEnd = false
     }

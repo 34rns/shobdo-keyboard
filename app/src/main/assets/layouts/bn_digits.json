@@ -3,48 +3,168 @@
   "name": "বাংলা সংখ্যা",
   "rows": [
     [
-      { "label": "১", "code": "১" },
-      { "label": "২", "code": "২" },
-      { "label": "৩", "code": "৩" },
-      { "label": "৪", "code": "৪" },
-      { "label": "৫", "code": "৫" },
-      { "label": "৬", "code": "৬" },
-      { "label": "৭", "code": "৭" },
-      { "label": "৮", "code": "৮" },
-      { "label": "৯", "code": "৯" },
-      { "label": "০", "code": "০" }
+      {
+        "label": "১",
+        "code": "১"
+      },
+      {
+        "label": "২",
+        "code": "২"
+      },
+      {
+        "label": "৩",
+        "code": "৩"
+      },
+      {
+        "label": "৪",
+        "code": "৪"
+      },
+      {
+        "label": "৫",
+        "code": "৫"
+      },
+      {
+        "label": "৬",
+        "code": "৬"
+      },
+      {
+        "label": "৭",
+        "code": "৭"
+      },
+      {
+        "label": "৮",
+        "code": "৮"
+      },
+      {
+        "label": "৯",
+        "code": "৯"
+      },
+      {
+        "label": "০",
+        "code": "০"
+      }
     ],
     [
-      { "label": "?", "code": "?" },
-      { "label": "!", "code": "!" },
-      { "label": ":", "code": ":" },
-      { "label": ";", "code": ";" },
-      { "label": "-", "code": "-" },
-      { "label": "(", "code": "(" },
-      { "label": ")", "code": ")" },
-      { "label": "%", "code": "%" },
-      { "label": "/", "code": "/" },
-      { "label": "@", "code": "@" }
+      {
+        "label": "?",
+        "code": "?"
+      },
+      {
+        "label": "!",
+        "code": "!"
+      },
+      {
+        "label": ":",
+        "code": ":"
+      },
+      {
+        "label": ";",
+        "code": ";"
+      },
+      {
+        "label": "-",
+        "code": "-"
+      },
+      {
+        "label": "(",
+        "code": "("
+      },
+      {
+        "label": ")",
+        "code": ")"
+      },
+      {
+        "label": "%",
+        "code": "%"
+      },
+      {
+        "label": "/",
+        "code": "/"
+      },
+      {
+        "label": "@",
+        "code": "@"
+      }
     ],
     [
-      { "label": "৳", "code": "৳" },
-      { "label": "#", "code": "#" },
-      { "label": "&", "code": "&" },
-      { "label": "*", "code": "*" },
-      { "label": "+", "code": "+" },
-      { "label": "=", "code": "=" },
-      { "label": "<", "code": "<" },
-      { "label": ">", "code": ">" },
-      { "label": "~", "code": "~" },
-      { "label": "|", "code": "|" }
+      {
+        "label": "৳",
+        "code": "৳"
+      },
+      {
+        "label": "#",
+        "code": "#"
+      },
+      {
+        "label": "&",
+        "code": "&"
+      },
+      {
+        "label": "*",
+        "code": "*"
+      },
+      {
+        "label": "+",
+        "code": "+"
+      },
+      {
+        "label": "=",
+        "code": "="
+      },
+      {
+        "label": "<",
+        "code": "<"
+      },
+      {
+        "label": ">",
+        "code": ">"
+      },
+      {
+        "label": "~",
+        "code": "~"
+      },
+      {
+        "label": "|",
+        "code": "|"
+      }
     ],
     [
-      { "label": "অ", "code": "", "type": "symbols", "widthWeight": 1.5 },
-      { "label": ",", "code": ",", "type": "comma" },
-      { "label": "space", "code": " ", "type": "space", "widthWeight": 3.0 },
-      { "label": "।", "code": "।", "type": "period" },
-      { "label": "🌐", "code": "", "type": "globe", "widthWeight": 1.5 },
-      { "label": "⏎", "code": "\n", "type": "enter", "widthWeight": 1.5 }
+      {
+        "label": "অ",
+        "code": "",
+        "type": "symbols",
+        "widthWeight": 1.25
+      },
+      {
+        "label": ",",
+        "code": ",",
+        "type": "comma",
+        "widthWeight": 0.8
+      },
+      {
+        "label": "",
+        "code": "",
+        "type": "globe",
+        "widthWeight": 1.0
+      },
+      {
+        "label": "space",
+        "code": " ",
+        "type": "space",
+        "widthWeight": 4.0
+      },
+      {
+        "label": ".",
+        "code": ".",
+        "type": "period",
+        "widthWeight": 0.8
+      },
+      {
+        "label": "⏎",
+        "code": "\n",
+        "type": "enter",
+        "widthWeight": 1.5
+      }
     ]
   ]
 }

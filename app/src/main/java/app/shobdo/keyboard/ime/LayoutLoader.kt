@@ -69,7 +69,12 @@ object LayoutLoader {
 
     private fun toModel(layoutId: String, row: Int, column: Int, dto: KeyDto): KeyModel {
         val where = "layout '$layoutId' row ${row + 1} key ${column + 1}"
-        if (dto.label.isEmpty()) throw LayoutFormatException("$where has no 'label'")
+        // The language key draws its own mark (Latin A, Bangla অ, swap arrow), so it is the one
+        // key type allowed to carry no label.
+        val drawsItself = dto.type == KeyType.GLOBE.json
+        if (dto.label.isEmpty() && !drawsItself) {
+            throw LayoutFormatException("$where has no 'label'")
+        }
         if (dto.widthWeight <= 0f) throw LayoutFormatException("$where has widthWeight ${dto.widthWeight}; it must be greater than 0")
         val type = try {
             KeyType.fromJson(dto.type)
