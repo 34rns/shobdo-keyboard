@@ -92,7 +92,7 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
         }
         drawWord(canvas, theme, model.word)
         for ((action, rect) in actionRects) {
-            icons.draw(canvas, iconFor(action), rect.centerX(), rect.centerY(), 18f * lastDensity, theme.barText)
+            icons.draw(canvas, iconFor(action), rect.centerX(), rect.centerY(), 20f * lastDensity, theme.barText)
         }
     }
 

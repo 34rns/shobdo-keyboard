@@ -106,6 +106,12 @@
     <string name="banglish_roman_first">Roman first</string>
     <string name="banglish_help">Type Roman letters and the Bangla word appears above the keys. Space commits the Bangla word; tapping the Roman option keeps the English text.</string>
     <string name="banglish_examples">Examples</string>
+    <string name="banglish_learn_title">Learning</string>
+    <string name="banglish_learn_switch">Learn my choices</string>
+    <string name="banglish_learn_body">Remember the Bangla words you pick so they come first next time. Kept on this device only, and never while typing a password.</string>
+    <string name="banglish_clear">Clear learned words</string>
+    <string name="banglish_cleared">Cleared</string>
+    <string name="cd_banglish_learn">Learn my Banglish choices</string>
 
     <!-- About -->
     <string name="about_title">About</string>

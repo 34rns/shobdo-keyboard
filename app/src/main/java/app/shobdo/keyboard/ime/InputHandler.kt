@@ -3,7 +3,8 @@ package app.shobdo.keyboard.ime
 import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import app.shobdo.keyboard.banglish.BanglishEngine
+import app.shobdo.keyboard.banglish.CandidateEngine
+import app.shobdo.keyboard.banglish.LearnedWords
 
 /**
  * The only class that talks to the editor.
@@ -131,33 +132,49 @@ class BanglaSession(private val handler: InputHandler) {
 /**
  * Banglish typing: the Roman buffer lives in the composing region, so backspace always edits
  * Roman letters and the editor shows exactly what was typed until a candidate is chosen.
+ *
+ * Candidate work happens in [CandidateEngine]; this class only owns the buffer, the editor
+ * calls and which candidate is highlighted.
  */
 class BanglishSession(
     private val handler: InputHandler,
-    private val engine: BanglishEngine,
-    private val banglaFirst: Boolean
+    private val engine: CandidateEngine,
+    private val banglaFirst: Boolean,
+    private val learnEnabled: Boolean,
+    private val learned: LearnedWords?
 ) {
 
     private val roman = StringBuilder()
+    private var ranked: List<CandidateEngine.Candidate> = emptyList()
 
     val isActive: Boolean get() = roman.isNotEmpty()
 
-    val banglaCandidate: String get() = engine.transliterate(roman.toString())
-
     val romanText: String get() = roman.toString()
 
-    /** Candidate chip labels in the configured order; the Bangla one is the primary. */
-    fun candidates(): List<String> {
+    /** The Bangla word Space will commit. */
+    val banglaCandidate: String
+        get() = ranked.firstOrNull { it.bangla }?.text ?: engine.best(roman.toString())
+
+    /** Up to [limit] chip labels, with the Roman text kept where the settings put it. */
+    fun candidates(limit: Int = 8): List<String> {
         if (roman.isEmpty()) return emptyList()
-        return engine.suggestions(roman.toString(), banglaFirst)
+        if (ranked.isEmpty()) refresh()
+        val texts = ranked.map { it.text }
+        return if (banglaFirst) texts.take(limit) else romanFirst(texts).take(limit)
     }
 
-    fun primaryIndex(): Int = if (banglaFirst) 0 else 1
+    /** Index of the chip that Space will commit. */
+    fun primaryIndex(): Int {
+        val texts = candidates()
+        val index = texts.indexOfFirst { it != romanText }
+        return if (index < 0) 0 else index
+    }
 
     fun type(text: String) {
         if (text.isEmpty()) return
         roman.append(text)
         handler.setComposing(roman.toString())
+        refresh()
     }
 
     /** @return false when the buffer was already empty. */
@@ -165,27 +182,41 @@ class BanglishSession(
         if (roman.isEmpty()) return false
         roman.setLength(roman.length - 1)
         handler.setComposing(roman.toString())
+        refresh()
         return true
     }
 
-    /** Space or punctuation: the Bangla word replaces the Roman composing text. */
-    fun commitBangla(): Boolean {
-        if (roman.isEmpty()) return false
-        val bangla = engine.transliterate(roman.toString())
-        handler.commit(bangla)
+    /** Commits one candidate and closes the composing region. */
+    fun commit(text: String): Boolean {
+        if (roman.isEmpty() || text.isEmpty()) return false
+        handler.commit(text)
+        if (learnEnabled && text != romanText) learned?.record(text)
         roman.setLength(0)
+        ranked = emptyList()
         return true
     }
 
-    /** Tapping the Roman chip keeps the English text instead. */
-    fun commitRoman(): Boolean {
-        if (roman.isEmpty()) return false
-        handler.commit(roman.toString())
-        roman.setLength(0)
-        return true
-    }
+    /** Space or punctuation: the highlighted Bangla word replaces the Roman composing text. */
+    fun commitBangla(): Boolean = commit(banglaCandidate)
+
+    /** The Roman chip keeps the English text instead. */
+    fun commitRoman(): Boolean = commit(romanText)
 
     fun reset() {
         roman.setLength(0)
+        ranked = emptyList()
+    }
+
+    private fun refresh() {
+        ranked = if (roman.isEmpty()) emptyList() else engine.candidates(roman.toString())
+    }
+
+    private fun romanFirst(texts: List<String>): List<String> {
+        val index = texts.indexOf(romanText)
+        if (index <= 0) return texts
+        val ordered = texts.toMutableList()
+        ordered.removeAt(index)
+        ordered.add(0, romanText)
+        return ordered
     }
 }
