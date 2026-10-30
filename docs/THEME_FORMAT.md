@@ -1,9 +1,15 @@
 # Theme JSON format
 
 Themes live in `app/src/main/assets/themes/`, one file per theme, and the file name
-must equal the theme `id` (`midnight_glass.json` -> `"id": "midnight_glass"`).
+must equal the theme `id` (`studio_dark.json` -> `"id": "studio_dark"`).
 `ThemeManager.kt` loads every built-in theme from that directory, plus user themes from
 app storage, so adding a theme is adding a file.
+
+## Schema version
+
+`"schemaVersion": 2` is the current format. A file without the field is read as schema 1:
+it loads, but the v2 tokens below fall back to their defaults (`flat` depth, `round` keys,
+the default font role), which is how a theme exported by 0.2.0 keeps working.
 
 ## Colour format
 
@@ -121,3 +127,60 @@ image brightness/blur sliders. A theme must not be able to change them.
   malicious file cannot produce unreadable keys.
 - Rejecting an import must show a readable reason ("text contrast 2.1:1, needs 4.5:1"),
   not a generic failure.
+
+## Schema 2 tokens
+
+Added in 0.3.0. All optional, all with defaults, so a schema 1 file still loads.
+
+| field             | type    | default   | meaning |
+|-------------------|---------|-----------|---------|
+| `keyDepth`        | string  | `flat`    | `flat` (no edge), `lip` (a 1dp darker bottom edge), `block` (a hard 2dp block edge) |
+| `keyShape`        | string  | `round`   | `round`, `squircle` (larger continuous corner) or `pixel` (stair-stepped, drawn without anti-aliasing) |
+| `fontRole`        | string  | `default` | `default` (Inter) or `pixel` (Pixelify Sans) for Latin key labels |
+| `spaceAccentLine` | boolean | `false`   | a 1dp line under the spacebar label, in `secondary` |
+| `pressedScale`    | number  | `0.97`    | how far a key shrinks while held, between 0.85 and 1.0. `1.0` means the key does not scale — the pixel theme moves it down 2dp instead |
+| `secondary`       | colour  | —         | a second accent, allowed **only** on the language key mark and the spacebar line |
+
+Depth is an edge, never a blurred shadow: a key may have one soft edge or none, but never a
+glow, and never a different treatment from its neighbours. There are at most two accents in a
+theme and at most one decorative effect.
+
+### Contrast rules enforced at build time and on save
+
+| surface | minimum |
+|---|---|
+| `key.text` on `key.fill` and on `key.pressed`, over every background stop | 4.5:1 |
+| `specialKey.text` on `specialKey.fill` (this is also what the icons are tinted with) | 4.5:1 |
+| `suggestionBar.text` on `suggestionBar.background` | 4.5:1 |
+| `accent` against every background stop | 3:1 |
+
+`scripts/validate-themes.py` and `ThemeContrast.kt` implement the same rules, and
+`ThemeManager.save` refuses a theme that fails, so an imported file cannot produce an
+unreadable keyboard.
+
+## The built-in gallery
+
+Thirteen themes, in the order the settings grid shows them:
+
+| id | name | character |
+|---|---|---|
+| `studio_light` | Studio Light | default in light mode: soft grey ground, white keys, one blue |
+| `studio_dark` | Studio Dark | default in dark mode: near-black ground, graphite keys |
+| `onyx` | Onyx | true black for OLED, flat keys |
+| `frost` | Frost | translucent keys over a cold vertical gradient, hairline stroke |
+| `aurora` | Aurora | deep navy to teal gradient, mint accent |
+| `sakura` | Sakura | pale blossom gradient, deep rose accent |
+| `tokyo_night` | Tokyo Night | indigo gradient, pink accent, cyan only on the language mark and spacebar line |
+| `pixel_arcade` | Pixel Arcade | Sweetie 16 palette, stair-stepped keys, block depth, pixel font, press moves the key down |
+| `cassette` | Cassette | warm paper and orange, 70s print feel |
+| `obsidian_gold` | Obsidian Gold | matte black with a gold hairline stroke |
+| `cloudline` | Cloudline | soft sky gradient, translucent white keys |
+| `evergreen` | Evergreen | deep forest green, jade accent |
+| `dynamic` | Dynamic | Material You palette on Android 12+; Studio Light/Dark below it |
+
+### Migration
+
+The 1.x ids no longer ship. `ThemeMigration.kt` maps each retired id to the new theme that
+keeps its character (`midnight_glass` -> `studio_dark`, `amoled_black` -> `onyx`, and so on),
+so a stored selection survives the update instead of silently jumping to the first theme.
+`ThemeTest` asserts that every mapped id exists.

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "id": "onyx",
+  "name": "Onyx",
+  "dark": true,
+  "background": {
+    "type": "solid",
+    "color": "#000000"
+  },
+  "key": {
+    "fill": "#16171A",
+    "pressed": "#26282D",
+    "text": "#EDEEF0",
+    "radius": 10,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#0C0D0F",
+    "text": "#EDEEF0"
+  },
+  "accent": "#8AB4FF",
+  "suggestionBar": {
+    "background": "#0C0D0F",
+    "text": "#EDEEF0"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "flat",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

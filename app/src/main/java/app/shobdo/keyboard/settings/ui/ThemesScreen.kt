@@ -203,13 +203,7 @@ private fun ThemeCard(theme: KeyboardTheme, active: Boolean, onClick: () -> Unit
         )
     ) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ThemeSwatch(
-                keyFill = Color(theme.keyFill),
-                keyText = Color(theme.keyText),
-                background = background,
-                accent = Color(theme.accent),
-                modifier = Modifier.fillMaxWidth()
-            )
+            ThemeKeyboardPreview(theme = theme, modifier = Modifier.fillMaxWidth())
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     theme.name,

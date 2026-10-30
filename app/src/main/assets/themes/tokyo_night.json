@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "id": "tokyo_night",
+  "name": "Tokyo Night",
+  "dark": true,
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#0B0D1A",
+      "#15112B"
+    ],
+    "angle": 90
+  },
+  "key": {
+    "fill": "#1B1E36",
+    "pressed": "#2A2E52",
+    "text": "#E6E8FF",
+    "radius": 11,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#12142A",
+    "text": "#E6E8FF"
+  },
+  "accent": "#FF4F9A",
+  "secondary": "#36E3FF",
+  "suggestionBar": {
+    "background": "#12142A",
+    "text": "#E6E8FF"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": true,
+  "pressedScale": 0.97
+}

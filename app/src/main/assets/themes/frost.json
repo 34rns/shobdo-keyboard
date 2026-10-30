@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "id": "frost",
+  "name": "Frost",
+  "dark": true,
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#1B2335",
+      "#0F1522"
+    ],
+    "angle": 90
+  },
+  "key": {
+    "fill": "#14FFFFFF",
+    "pressed": "#26FFFFFF",
+    "text": "#F5F7FF",
+    "radius": 12,
+    "shadow": false,
+    "stroke": "#1FFFFFFF"
+  },
+  "specialKey": {
+    "fill": "#0AFFFFFF",
+    "text": "#F5F7FF"
+  },
+  "accent": "#8EA2FF",
+  "suggestionBar": {
+    "background": "#0AFFFFFF",
+    "text": "#F5F7FF"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "flat",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

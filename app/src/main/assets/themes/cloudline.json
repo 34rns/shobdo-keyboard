@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "id": "cloudline",
+  "name": "Cloudline",
+  "dark": false,
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#CFE8FF",
+      "#F6F2FF"
+    ],
+    "angle": 90
+  },
+  "key": {
+    "fill": "#CCFFFFFF",
+    "pressed": "#FFFFFFFF",
+    "text": "#1F2A44",
+    "radius": 13,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#80FFFFFF",
+    "text": "#1F2A44"
+  },
+  "accent": "#467EED",
+  "suggestionBar": {
+    "background": "#80FFFFFF",
+    "text": "#1F2A44"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

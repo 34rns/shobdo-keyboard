@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "id": "pixel_arcade",
+  "name": "Pixel Arcade",
+  "dark": true,
+  "background": {
+    "type": "solid",
+    "color": "#1A1C2C"
+  },
+  "key": {
+    "fill": "#333C57",
+    "pressed": "#566C86",
+    "text": "#F4F4F4",
+    "radius": 3,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#29366F",
+    "text": "#F4F4F4"
+  },
+  "accent": "#FFCD75",
+  "secondary": "#73EFF7",
+  "suggestionBar": {
+    "background": "#29366F",
+    "text": "#F4F4F4"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 4,
+  "keyDepth": "block",
+  "keyShape": "pixel",
+  "fontRole": "pixel",
+  "spaceAccentLine": false,
+  "pressedScale": 1.0
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "id": "obsidian_gold",
+  "name": "Obsidian Gold",
+  "dark": true,
+  "background": {
+    "type": "solid",
+    "color": "#0A0A0B"
+  },
+  "key": {
+    "fill": "#1A1A1D",
+    "pressed": "#26262A",
+    "text": "#F3E9D2",
+    "radius": 10,
+    "shadow": false,
+    "stroke": "#33C8A24A"
+  },
+  "specialKey": {
+    "fill": "#121214",
+    "text": "#F3E9D2"
+  },
+  "accent": "#C8A24A",
+  "suggestionBar": {
+    "background": "#121214",
+    "text": "#F3E9D2"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "flat",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

@@ -28,36 +28,31 @@ MIN_CONTRAST = 4.5
 # Every built-in theme, by file name. A theme file that is not listed here still gets
 # validated; the list guards against a theme being deleted by accident.
 REQUIRED_THEMES = [
-    # 0.1.0
-    "midnight_glass",
-    "pure_light",
-    "amoled_black",
-    "ocean_breeze",
-    "sunset_gradient",
-    "forest_calm",
-    "rose_gold",
-    "neon_cyber",
-    "material_you",
-    "paper_minimal",
-    "royal_purple",
-    "bangla_flag",
-    # 0.2.0
-    "aurora_borealis",
-    "cherry_blossom",
-    "desert_dune",
-    "deep_space",
-    "mint_fresh",
-    "graphite_pro",
-    "sky_day",
-    "lava",
-    "lavender_mist",
-    "monsoon",
-    "golden_hour",
-    "ink_and_paper",
+    # 0.3.0 gallery, in the order the settings grid shows them
+    "studio_light",
+    "studio_dark",
+    "onyx",
+    "frost",
+    "aurora",
+    "sakura",
+    "tokyo_night",
+    "pixel_arcade",
+    "cassette",
+    "obsidian_gold",
+    "cloudline",
+    "evergreen",
+    "dynamic",
 ]
 
 KEY_FIELDS = ("fill", "pressed", "text")
 BACKGROUND_TYPES = {"solid", "gradient", "image"}
+DEPTHS = {"flat", "lip", "block"}
+SHAPES = {"round", "squircle", "pixel"}
+FONT_ROLES = {"default", "pixel"}
+
+# Icons and the accent are large/decorative surfaces rather than body text, so they are
+# held to the WCAG non-text floor instead of 4.5:1.
+MIN_UI_CONTRAST = 3.0
 
 
 def parse_color(value):
@@ -247,6 +242,23 @@ def check_theme(path):
     if not isinstance(spacing, (int, float)) or spacing < 0:
         errors.append(f"{path.name}: keySpacing must be a number >= 0")
 
+    # --- schema 2 tokens -----------------------------------------------------------
+    if data.get("schemaVersion") != 2:
+        errors.append(f"{path.name}: schemaVersion must be 2")
+    if data.get("keyDepth") not in DEPTHS:
+        errors.append(f"{path.name}: keyDepth must be one of {sorted(DEPTHS)}")
+    if data.get("keyShape") not in SHAPES:
+        errors.append(f"{path.name}: keyShape must be one of {sorted(SHAPES)}")
+    if data.get("fontRole") not in FONT_ROLES:
+        errors.append(f"{path.name}: fontRole must be one of {sorted(FONT_ROLES)}")
+    if not isinstance(data.get("spaceAccentLine"), bool):
+        errors.append(f"{path.name}: spaceAccentLine must be true or false")
+    pressed_scale = data.get("pressedScale")
+    if not isinstance(pressed_scale, (int, float)) or not 0.85 <= pressed_scale <= 1.0:
+        errors.append(f"{path.name}: pressedScale must be between 0.85 and 1.0")
+    if "secondary" in data:
+        require_color(data["secondary"], f"{path.name}: secondary", errors)
+
     if stops:
         if key.get("text") and key.get("fill"):
             ratios["key"] = check_contrast(
@@ -272,6 +284,18 @@ def check_theme(path):
                 stops,
                 errors,
             )
+        if data.get("accent"):
+            try:
+                accent_rgb = parse_color(data["accent"])[:3]
+                worst_ratio = min(contrast_ratio(accent_rgb, stop) for stop in stops)
+                ratios["accent"] = worst_ratio
+                if worst_ratio < MIN_UI_CONTRAST:
+                    errors.append(
+                        f"{path.name} accent on background: contrast {worst_ratio:.2f}:1 "
+                        f"is below {MIN_UI_CONTRAST}:1"
+                    )
+            except ValueError as exc:
+                errors.append(f"{path.name}: accent: {exc}")
 
     return errors, ratios
 

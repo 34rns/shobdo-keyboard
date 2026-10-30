@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "id": "studio_dark",
+  "name": "Studio Dark",
+  "dark": true,
+  "background": {
+    "type": "solid",
+    "color": "#0E0F12"
+  },
+  "key": {
+    "fill": "#26282D",
+    "pressed": "#34373D",
+    "text": "#F2F3F5",
+    "radius": 10,
+    "shadow": false,
+    "stroke": "#00000000"
+  },
+  "specialKey": {
+    "fill": "#191B1F",
+    "text": "#F2F3F5"
+  },
+  "accent": "#7C9CFF",
+  "suggestionBar": {
+    "background": "#191B1F",
+    "text": "#F2F3F5"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "lip",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "id": "aurora",
+  "name": "Aurora",
+  "dark": true,
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#0B1220",
+      "#14302E"
+    ],
+    "angle": 90
+  },
+  "key": {
+    "fill": "#12FFFFFF",
+    "pressed": "#24FFFFFF",
+    "text": "#EAFBF6",
+    "radius": 12,
+    "shadow": false,
+    "stroke": "#1AFFFFFF"
+  },
+  "specialKey": {
+    "fill": "#08FFFFFF",
+    "text": "#EAFBF6"
+  },
+  "accent": "#5EEAD4",
+  "suggestionBar": {
+    "background": "#08FFFFFF",
+    "text": "#EAFBF6"
+  },
+  "font": {
+    "scale": 1.0,
+    "bold": false
+  },
+  "keySpacing": 6,
+  "keyDepth": "flat",
+  "keyShape": "round",
+  "fontRole": "default",
+  "spaceAccentLine": false,
+  "pressedScale": 0.97
+}

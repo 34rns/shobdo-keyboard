@@ -15,6 +15,9 @@ object ThemeContrast {
 
     const val MIN_CONTRAST = 4.5
 
+    /** Icons and the accent are surfaces, not body text, so they use the WCAG UI floor. */
+    const val MIN_UI_CONTRAST = 3.0
+
     /** The solid colours a background can show. Every gradient stop counts, worst wins. */
     fun backgroundStops(background: ThemeBackground): List<Int> = when (background) {
         is ThemeBackground.Solid -> listOf(background.color)
@@ -94,6 +97,18 @@ object ThemeContrast {
             } else {
                 null
             }
+        }
+    }
+
+    /** The accent is used as a filled key, so it must stand off the background. */
+    fun accentFailure(theme: KeyboardTheme): String? {
+        val stops = backgroundStops(theme.background)
+        if (stops.isEmpty()) return null
+        val value = stops.minOf { ratio(theme.accent, it) }
+        return if (value < MIN_UI_CONTRAST) {
+            "accent on background: contrast %.2f:1 needs %s:1".format(value, MIN_UI_CONTRAST)
+        } else {
+            null
         }
     }
 }
