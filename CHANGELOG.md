@@ -9,6 +9,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- No unreleased changes yet.
+
+## [0.3.0] - 2026-10-31
+
+### Added
+
 - **Banglish v2.** A Bangla frequency word list (83,433 words) now ships inside the app and
   ranks every reading of the Roman buffer, so everyday words come first. The suggestion strip
   expands into a full candidate panel, and the words you pick can be remembered on the device.
