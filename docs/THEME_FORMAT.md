@@ -86,7 +86,7 @@ failure tells you exactly which colour to change and what composited hex it prod
 
 ## Material You
 
-`material_you.json` sets `"dynamic": true`. On Android 12+ `ThemeManager` reads the
+`dynamic.json` sets `"dynamic": true`. On Android 12+ `ThemeManager` reads the
 system palette and replaces the background, key, specialKey, accent and suggestionBar
 colours at runtime. The colours in the file are the **fallback** for Android 8-11 or when
 the system palette is unavailable, and they are what the contrast checker validates — so
@@ -94,20 +94,9 @@ they must stand on their own.
 
 ## Built-in themes
 
-| id                | name            | dark | notes                              |
-|-------------------|-----------------|------|------------------------------------|
-| `midnight_glass`  | Midnight Glass  | yes  | navy gradient, translucent keys    |
-| `pure_light`      | Pure Light      | no   | near-white, dark ink text          |
-| `amoled_black`    | AMOLED Black    | yes  | true #000000 for OLED power saving |
-| `ocean_breeze`    | Ocean Breeze    | yes  | teal gradient                      |
-| `sunset_gradient` | Sunset Gradient | no   | warm orange gradient               |
-| `forest_calm`     | Forest Calm     | yes  | deep green                         |
-| `rose_gold`       | Rose Gold       | no   | blush background, dark text        |
-| `neon_cyber`      | Neon Cyber      | yes  | cyan glow on near-black            |
-| `material_you`    | Material You    | yes  | `dynamic: true`, dark fallback     |
-| `paper_minimal`   | Paper Minimal   | no   | cream, flat, tiny radius           |
-| `royal_purple`    | Royal Purple    | yes  | violet gradient                    |
-| `bangla_flag`     | Bangla Flag     | yes  | deep green with red accent         |
+The thirteen themes that ship in 0.3.0, and the 1.x ids they replace, are listed under
+[The built-in gallery](#the-built-in-gallery) below. A theme id is stable once published:
+renaming one is a migration, not a cosmetic change.
 
 ## Customisation vs theme fields
 
@@ -120,7 +109,7 @@ image brightness/blur sliders. A theme must not be able to change them.
 
 ## User themes
 
-- Duplicating a built-in theme copies its JSON with a new `id` (`midnight_glass_copy`)
+- Duplicating a built-in theme copies its JSON with a new `id` (`studio_dark_copy`)
   and marks it user-owned, so app updates never overwrite it.
 - Export writes the same JSON to a `.json` file; import validates it with the same rules
   as `validate-themes.py` (schema + contrast) before accepting it, so a hand-edited or

@@ -27,6 +27,7 @@ Set-Location $root
 
 $shots = Join-Path $root 'docs\screenshots'
 New-Item -ItemType Directory -Force -Path $shots | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $shots 'themes') | Out-Null
 
 $package = 'app.shobdo.keyboard.debug'
 $ime = "$package/app.shobdo.keyboard.ime.ShobdoIME"
@@ -34,12 +35,30 @@ $settings = "$package/app.shobdo.keyboard.settings.SettingsActivity"
 $demo = "$package/.DemoActivity"
 
 # Keyboard geometry on 1080x2400, measured from a capture of this build.
-$SHIFT = @(56, 2107)
-$KEY_A = @(56, 1920)
-$KEY_I = @(812, 1754)
-$KEY_M = @(831, 2107)
-$BACKSPACE = @(995, 2107)
-$GLOBE = @(837, 2242)
+$SHIFT = @(75, 1917)
+$KEY_A = @(75, 1755)
+$KEY_I = @(845, 1596)
+$KEY_M = @(845, 1917)
+$BACKSPACE = @(1004, 1917)
+$GLOBE = @(320, 2080)
+$PANEL = @(859, 1190)
+
+# id => the name the picker shows. Keep this list in step with assets/themes.
+$THEMES = @(
+    @{ Id = 'studio_light'; Name = 'Studio Light' },
+    @{ Id = 'studio_dark';  Name = 'Studio Dark' },
+    @{ Id = 'onyx';         Name = 'Onyx' },
+    @{ Id = 'frost';        Name = 'Frost' },
+    @{ Id = 'aurora';       Name = 'Aurora' },
+    @{ Id = 'sakura';       Name = 'Sakura' },
+    @{ Id = 'tokyo_night';  Name = 'Tokyo Night' },
+    @{ Id = 'pixel_arcade'; Name = 'Pixel Arcade' },
+    @{ Id = 'cassette';     Name = 'Cassette' },
+    @{ Id = 'obsidian_gold';Name = 'Obsidian Gold' },
+    @{ Id = 'cloudline';    Name = 'Cloudline' },
+    @{ Id = 'evergreen';    Name = 'Evergreen' },
+    @{ Id = 'dynamic';      Name = 'Dynamic' }
+)
 
 function Invoke-Adb {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
@@ -84,10 +103,12 @@ function Get-UiNodes {
         $right = [int]$match.Groups[3].Value
         $bottom = [int]$match.Groups[4].Value
         $nodes += [pscustomobject]@{
-            Class = $node.GetAttribute('class')
-            Text  = $node.GetAttribute('text')
-            X     = [int](($left + $right) / 2)
-            Y     = [int](($top + $bottom) / 2)
+            Class       = $node.GetAttribute('class')
+            Text        = $node.GetAttribute('text')
+            ContentDesc = $node.GetAttribute('content-desc')
+            Checkable   = $node.GetAttribute('checkable')
+            X           = [int](($left + $right) / 2)
+            Y           = [int](($top + $bottom) / 2)
         }
     }
     return $nodes
@@ -152,7 +173,7 @@ function Wait-Keyboard {
 function Show-Home {
     # A resumed settings instance may still be on the Themes screen; walk back to Home.
     for ($i = 0; $i -lt 3; $i++) {
-        if (Find-Text -Text 'THEME') { return }
+        if (Find-Text -Text 'Theme') { return }
         Invoke-Adb shell input keyevent 4
         Start-Sleep -Milliseconds 900
     }
@@ -170,11 +191,15 @@ function Show-Demo {
 }
 
 function Set-Switch {
-    # The switch sits at the right edge of the language row, level with its label.
+    # The switch is the checkable node on the same row as its label.
     param([string]$Label)
-    $node = Find-Text -Text $Label
-    if (-not $node) { throw "could not find the '$Label' row" }
-    Invoke-Adb shell input tap 937 $node.Y
+    $row = Find-Text -Text $Label
+    if (-not $row) { throw "could not find the '$Label' row" }
+    $switch = Get-UiNodes |
+        Where-Object { $_.Checkable -eq 'true' -and [math]::Abs($_.Y - $row.Y) -lt 60 } |
+        Select-Object -First 1
+    if (-not $switch) { throw "could not find the '$Label' switch" }
+    Invoke-Adb shell input tap $switch.X $switch.Y
     Start-Sleep -Milliseconds 700
 }
 
@@ -187,7 +212,11 @@ function Set-Theme {
     Invoke-Adb shell am start -n $settings | Out-Null
     Start-Sleep -Seconds 2
     Show-Home
-    Tap-Below -Anchor 'THEME' -Offset 110
+    Tap-Below -Anchor 'Theme' -Offset 110
+    # Back to the top of the grid: Tap-Text only scrolls down, so a run of thirteen themes
+    # would otherwise start halfway down the list.
+    Invoke-Adb shell input swipe 540 700 540 2100 300
+    Start-Sleep -Milliseconds 400
     Invoke-Adb shell input swipe 540 700 540 2100 300
     Tap-Text -Text $Name
     Tap-Text -Text 'Apply'
@@ -215,6 +244,15 @@ Write-Host 'selecting Shobdo Keyboard as the input method'
 Invoke-Adb shell ime enable $ime | Out-Null
 Invoke-Adb shell ime set $ime | Out-Null
 
+Write-Host 'opening the settings app to catch onboarding'
+Invoke-Adb shell am start -n $settings | Out-Null
+Start-Sleep -Seconds 3
+if (Find-Text -Text 'Skip') {
+    Save-Shot '00-onboarding'
+    Tap-Text -Text 'Start typing'
+    Start-Sleep -Milliseconds 900
+}
+
 Write-Host 'opening the demo chat screen'
 Invoke-Adb shell am start -n $demo | Out-Null
 Start-Sleep -Seconds 4
@@ -232,19 +270,19 @@ Tap-At -Point $KEY_M -WaitMs 300
 Tap-At -Point $KEY_I -WaitMs 500
 Save-Shot '03-banglish'
 
+Write-Host 'capturing the expanded suggestion panel'
+Tap-At -Point $PANEL -WaitMs 700
+Save-Shot '04-candidates'
+Tap-At -Point $PANEL -WaitMs 700
+
 # Clear the Banglish composing text so the theme shots start from an empty field.
 for ($i = 0; $i -lt 4; $i++) { Tap-At -Point $BACKSPACE -WaitMs 150 }
 
-Write-Host 'capturing the settings screens'
+Write-Host 'capturing the theme gallery'
 Invoke-Adb shell am start -n $settings | Out-Null
 Start-Sleep -Seconds 3
-# A cleared app starts on onboarding; step past it so the shots show the real screens.
-if (Find-Text -Text 'Skip') {
-    Tap-Text -Text 'Skip'
-    Start-Sleep -Milliseconds 900
-}
-Save-Shot '04-settings'
-Tap-Below -Anchor 'THEME' -Offset 110
+Show-Home
+Tap-Below -Anchor 'Theme' -Offset 110
 Save-Shot '05-themes'
 Invoke-Adb shell input swipe 540 1800 540 500 400
 Start-Sleep -Milliseconds 800
@@ -252,26 +290,16 @@ Save-Shot '06-more-themes'
 Invoke-Adb shell input swipe 540 700 540 2100 300
 Start-Sleep -Milliseconds 800
 
-Write-Host 'capturing the theme dialog'
-Tap-Text -Text 'Golden Hour'
-Start-Sleep -Milliseconds 600
-Save-Shot '06-theme-dialog'
-Tap-Text -Text 'Cancel'
-
 Write-Host 'limiting the keyboard to English for the theme shots'
-Invoke-Adb shell am start -n $settings | Out-Null
-Start-Sleep -Seconds 2
 Show-Home
 Set-Switch -Label 'Bangla'
 Set-Switch -Label 'Banglish'
 
-Write-Host 'capturing three themes on the keyboard'
-Set-Theme -Name 'Pure Light'
-Save-Shot '07-pure-light'
-Set-Theme -Name 'Lava'
-Save-Shot '08-lava'
-Set-Theme -Name 'Aurora Borealis'
-Save-Shot '09-aurora'
+Write-Host 'capturing every theme on the keyboard'
+foreach ($theme in $THEMES) {
+    Set-Theme -Name $theme.Name
+    Save-Shot ('themes\t-' + $theme.Id)
+}
 
 Write-Host 'restoring the other two languages'
 Invoke-Adb shell am start -n $settings | Out-Null

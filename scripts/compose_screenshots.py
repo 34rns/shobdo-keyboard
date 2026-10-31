@@ -11,7 +11,7 @@ Outputs : docs/screenshots/composite-languages.png
 
 Captions are English only on purpose: Pillow has no HarfBuzz shaping here (`raqm` is
 missing), so Bengali drawn into a caption would break its conjuncts. The Bengali in the
-screenshots themselves is real, shaped by the browser.
+screenshots themselves is real, shaped by Android.
 """
 
 import pathlib
@@ -165,12 +165,12 @@ def social_preview(out_name="social-preview.png"):
               font=font("regular", 27), fill=(198, 208, 226))
     draw.text((118, 222), "for Bangla, Banglish and English.",
               font=font("regular", 27), fill=(198, 208, 226))
-    draw.text((118, 276), "English QWERTY  ·  Bangla (Provhat)  ·  Banglish input",
+    draw.text((118, 276), "English QWERTY  ·  Bangla (Probhat)  ·  Banglish input",
               font=font("regular", 21), fill=MUTED)
 
     for index, line in enumerate([
         "No internet permission — nothing leaves your device",
-        "24 themes, each checked for 4.5:1 contrast",
+        "13 themes, each checked for 4.5:1 contrast",
         "Open source, MIT licensed",
     ]):
         y = 336 + index * 38
@@ -178,7 +178,7 @@ def social_preview(out_name="social-preview.png"):
         draw.text((142, y), line, font=font("regular", 21), fill=(214, 222, 236))
 
     # Two phones, the lighter one behind so it reads as a pair.
-    back = load("07-pure-light")
+    back = load("themes/t-studio_light")
     front = load("03-banglish")
     place_phone(canvas, back, 792, 150, 212, radius=24, bezel=6)
     place_phone(canvas, front, 986, 118, 212, radius=24, bezel=6)
@@ -196,19 +196,21 @@ def main():
     written.append(composite(
         ["01-english", "02-bangla", "03-banglish"],
         ["English QWERTY, with number row",
-         "Bangla, Provhat fixed layout",
+         "Bangla, Probhat fixed layout",
          "Banglish: type Roman, get Bangla"],
         "composite-languages.png", cols=3, phone_width=520))
 
     written.append(composite(
-        ["01-english", "09-aurora", "07-pure-light", "08-lava"],
-        ["Midnight Glass (default)", "Aurora Borealis", "Pure Light", "Lava"],
+        ["themes/t-studio_light", "themes/t-aurora", "themes/t-tokyo_night",
+         "themes/t-pixel_arcade"],
+        ["Studio Light", "Aurora", "Tokyo Night", "Pixel Arcade"],
         "composite-themes.png", cols=4, phone_width=400,
-        title="Four of the twenty-four built-in themes"))
+        title="Four of the thirteen built-in themes"))
 
     written.append(composite(
-        ["04-settings", "05-themes", "06-theme-dialog"],
-        ["Settings", "Twenty-four themes, live preview", "Duplicate, export or apply"],
+        ["00-onboarding", "05-themes", "04-candidates"],
+        ["Three-step onboarding", "Thirteen themes, live preview",
+         "Ranked candidates, full panel"],
         "composite-settings.png", cols=3, phone_width=520))
 
     written.append(social_preview())

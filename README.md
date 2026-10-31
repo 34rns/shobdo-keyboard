@@ -20,9 +20,10 @@ people who know the letters, and a phonetic Banglish mode for people who think i
 letters — `ami` becomes আমি. English is one tap away, and every language can be switched
 off individually.
 
-**Themes that look designed, not defaulted.** Twenty-four built-in themes, from AMOLED Black to
-Rose Gold, each checked against a 4.5:1 contrast floor on the actual composited key colour.
-Themes are plain JSON, so you can write your own and share it.
+**Themes that look designed, not defaulted.** Thirteen built-in themes, from Studio Light to
+Pixel Arcade, each checked against a 4.5:1 contrast floor on the actual composited key colour.
+The picker shows a live keyboard preview of every one, and themes are plain JSON, so you can
+write your own and share it.
 
 **Private by design.** The app has no `INTERNET` permission, no analytics, no ads and no
 tracking libraries. Not "we promise not to look" — the operating system prevents the app
@@ -34,15 +35,15 @@ from making a connection at all. See [PRIVACY.md](PRIVACY.md).
 
 | English | Bangla | Banglish |
 |:---:|:---:|:---:|
-| ![English QWERTY with number row](docs/screenshots/01-english.png) | ![Bangla Provhat layout](docs/screenshots/02-bangla.png) | ![Banglish with Bangla suggestions](docs/screenshots/03-banglish.png) |
-| Number row, glass keys | Probhat fixed layout | Type Roman, get Bangla |
+| ![English QWERTY with number row](docs/screenshots/01-english.png) | ![Bangla Probhat layout](docs/screenshots/02-bangla.png) | ![Banglish with Bangla suggestions](docs/screenshots/03-banglish.png) |
+| Number row, Studio Dark | Probhat fixed layout | Type Roman, get Bangla |
 
-![Four of the twenty-four built-in themes](docs/screenshots/composite-themes.png)
+![Four of the thirteen built-in themes](docs/screenshots/composite-themes.png)
 
-| Settings | Theme picker | Theme actions |
+| Onboarding | Themes | All candidates |
 |:---:|:---:|:---:|
-| ![Settings](docs/screenshots/04-settings.png) | ![Theme picker](docs/screenshots/05-themes.png) | ![Theme dialog](docs/screenshots/06-theme-dialog.png) |
-| Languages, theme, typing | Twenty-four themes, live preview | Duplicate, export or apply |
+| ![Three-step onboarding](docs/screenshots/00-onboarding.png) | ![Theme picker](docs/screenshots/05-themes.png) | ![Expanded suggestion panel](docs/screenshots/04-candidates.png) |
+| Three setup steps | Thirteen themes, live preview | Ranked candidates, full panel |
 
 Every image above is a real capture: the debug build running on Android 15, photographed with
 `adb exec-out screencap` while the keyboard was the active input method, in a debug-only demo
@@ -61,9 +62,11 @@ and `scripts/compose_screenshots.py` builds the composites.
 - **Long-press accents.** Hold a vowel for é è ê ë, and digits for `!@#$%` and friends.
 - **Bangla composing.** Kar signs, hasanta joining and one-unit backspace that removes a
   base letter together with its kar.
-- **Suggestion bar** with the Bangla candidate first, the Roman text second, and a tap to
-  commit either.
-- **Twenty-four themes** with live preview, plus duplicate, create, export and import.
+- **Suggestion bar that ranks.** Every reading of your Roman buffer is scored against an
+  83,000-word Bangla frequency list, so common words come first. Expand the strip for the full
+  panel, and let the keyboard remember the words you pick.
+- **Thirteen themes** with a live keyboard preview in the picker, plus duplicate, create,
+  export and import.
 - **Adjustable everything:** key height, spacing, corner radius, font size, bold, borders,
   number row, haptic strength and one-handed mode.
 - **Dark and light,** following the system, with Material You colours on Android 12+.
@@ -143,8 +146,8 @@ settings are in **[docs/THEME_FORMAT.md](docs/THEME_FORMAT.md)**.
 - [x] Language switching and Bangla composing
 - [x] Settings app with onboarding and live theme preview
 - [x] Twenty-four themes, contrast-checked
-- [x] Signed APK, screenshots and the v0.1.0 release
-- [ ] Small handwritten word list to improve Banglish suggestions
+- [x] Signed APK, screenshots and public releases
+- [x] Word list for ranked Banglish suggestions
 - [ ] Automatic reph (র্) in Banglish words like `kormo` → কর্ম
 - [ ] More layouts (Jatiya, phonetic Bangla)
 
