@@ -264,7 +264,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         if (!composing) candidatesExpanded = false
         val model = if (composing) {
             StripModel(
-                candidates = banglish.candidates(),
+                // The strip shows only what fits; the expanded panel lays out all of these.
+                candidates = banglish.candidates(limit = PANEL_CANDIDATES),
                 primary = banglish.primaryIndex(),
                 expanded = candidatesExpanded
             )
@@ -439,6 +440,9 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     fun userThemeDirectory(): File = File(filesDir, ThemeManager.DIR)
 
     companion object {
+
+        /** How many readings the expanded panel may show. */
+        private const val PANEL_CANDIDATES = 32
 
         /** Used only if the shipped phonetic table cannot be read, so typing never dies. */
         private const val FALLBACK_RULES =
