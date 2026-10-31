@@ -322,7 +322,9 @@ class KeyPainter(private val icons: IconSet) {
     private fun drawLanguageMark(canvas: Canvas, theme: KeyboardTheme, rect: RectF) {
         val cx = rect.centerX()
         val height = rect.height()
-        val glyphSize = (height * 0.34f).coerceAtMost(rect.width() * 0.34f)
+        // The two letters have to share the key with the swap arrows, so they are sized from
+        // the width first and only then from the height.
+        val glyphSize = (height * 0.32f).coerceAtMost(rect.width() * 0.26f)
         val colour = theme.specialText
         val markColour = theme.secondary ?: theme.specialText
 
@@ -333,10 +335,10 @@ class KeyPainter(private val icons: IconSet) {
         val latinWidth = box.text.measureText(OFF_LATIN) / 2f
         box.text.typeface = banglaTypeface
         val banglaWidth = box.text.measureText(OFF_BANGLA) / 2f
-        val gap = glyphSize * 0.30f
+        val gap = (glyphSize * 1.15f).coerceAtMost(rect.width() - (latinWidth + banglaWidth) * 2f - 4f)
         val total = latinWidth * 2 + banglaWidth * 2 + gap
         val startX = cx - total / 2f + latinWidth
-        val glyphY = rect.centerY() - height * 0.06f
+        val glyphY = rect.centerY()
 
         box.text.typeface = latinTypeface
         box.text.textSize = glyphSize
@@ -344,17 +346,22 @@ class KeyPainter(private val icons: IconSet) {
         box.text.typeface = banglaTypeface
         box.drawCentred(canvas, OFF_BANGLA, startX + latinWidth * 2 + gap + banglaWidth, glyphY)
 
-        val arrowY = rect.centerY() + height * 0.30f
-        val left = rect.centerX() - total / 2f
-        val right = rect.centerX() + total / 2f
-        val head = 2.2f * box.density
+        // A small double arrow in the gap: it says "swap these two" without a globe.
+        val arrowLeft = cx - gap / 2f + 1f * box.density
+        val arrowRight = cx + gap / 2f - 1f * box.density
+        val head = (gap * 0.22f).coerceAtMost(2.6f * box.density)
+        val stroke = 1.1f * box.density
+        val rise = glyphSize * 0.17f
         box.stroke.color = markColour
-        box.stroke.strokeWidth = 1f * box.density
-        canvas.drawLine(left + head, arrowY, right - head, arrowY, box.stroke)
-        canvas.drawLine(left + head, arrowY, left + head * 2f, arrowY - head, box.stroke)
-        canvas.drawLine(left + head, arrowY, left + head * 2f, arrowY + head, box.stroke)
-        canvas.drawLine(right - head, arrowY, right - head * 2f, arrowY - head, box.stroke)
-        canvas.drawLine(right - head, arrowY, right - head * 2f, arrowY + head, box.stroke)
+        box.stroke.strokeWidth = stroke
+        val topY = glyphY - rise
+        val bottomY = glyphY + rise
+        canvas.drawLine(arrowLeft + head, topY, arrowRight, topY, box.stroke)
+        canvas.drawLine(arrowRight, topY, arrowRight - head, topY - head * 0.7f, box.stroke)
+        canvas.drawLine(arrowRight, topY, arrowRight - head, topY + head * 0.7f, box.stroke)
+        canvas.drawLine(arrowRight - head, bottomY, arrowLeft, bottomY, box.stroke)
+        canvas.drawLine(arrowLeft, bottomY, arrowLeft + head, bottomY - head * 0.7f, box.stroke)
+        canvas.drawLine(arrowLeft, bottomY, arrowLeft + head, bottomY + head * 0.7f, box.stroke)
         box.text.typeface = Typeface.DEFAULT
     }
 

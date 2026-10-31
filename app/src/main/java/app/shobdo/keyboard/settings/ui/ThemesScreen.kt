@@ -198,8 +198,12 @@ private fun ThemeCard(theme: KeyboardTheme, active: Boolean, onClick: () -> Unit
             .semantics { contentDescription = cardLabel },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (active) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            containerColor = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            // The card body is the theme's own canvas, so the label has to be coloured
+            // explicitly: inheriting the card's content colour painted dark names on dark
+            // themes and left them unreadable.
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -208,10 +212,15 @@ private fun ThemeCard(theme: KeyboardTheme, active: Boolean, onClick: () -> Unit
                 Text(
                     theme.name,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 if (active) {
-                    Text(stringResource(R.string.theme_current), style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        stringResource(R.string.theme_current),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

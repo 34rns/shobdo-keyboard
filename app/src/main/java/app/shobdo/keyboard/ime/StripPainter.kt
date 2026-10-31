@@ -145,7 +145,14 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
     }
 
     /** Lays out the expanded candidate grid. Returns the height it needs. */
-    fun layoutPanel(strip: RectF, top: Float, width: Float, count: Int, density: Float): Float {
+    fun layoutPanel(
+        strip: RectF,
+        top: Float,
+        width: Float,
+        count: Int,
+        density: Float,
+        coverTo: Float = 0f
+    ): Float {
         panelRects.clear()
         if (count <= 0) {
             panelRect.setEmpty()
@@ -154,7 +161,9 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
         val cellHeight = 34f * density
         val rows = ((count + PANEL_COLUMNS - 1) / PANEL_COLUMNS).coerceAtMost(PANEL_MAX_ROWS)
         val height = rows * cellHeight + 8f * density
-        panelRect.set(0f, top, width, top + height)
+        // The grid only needs a few rows, but a sheet that stops in the middle of a key row
+        // looks broken. It is drawn down to [coverTo] so the keys never peek out below it.
+        panelRect.set(0f, top, width, top + maxOf(height, coverTo - top))
         val cellWidth = width / PANEL_COLUMNS
         for (index in 0 until minOf(count, PANEL_COLUMNS * PANEL_MAX_ROWS)) {
             val column = index % PANEL_COLUMNS

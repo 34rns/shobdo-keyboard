@@ -204,7 +204,8 @@ class KeyboardView(context: Context) : View(context) {
         if (stripModel.expanded && stripModel.hasCandidates) {
             val top = geometry.barRect.bottom + KeyboardMetrics.gapBelowStrip * density / 2f
             val height = stripPainter.layoutPanel(
-                geometry.barRect, top, width.toFloat(), stripModel.candidates.size, density
+                geometry.barRect, top, width.toFloat(), stripModel.candidates.size, density,
+                coverTo = this.height.toFloat() - navInsetPx - KeyboardMetrics.bottomPadding * density
             )
             panelBottom = top + height
         }
@@ -254,6 +255,9 @@ class KeyboardView(context: Context) : View(context) {
             painter.drawPreview(canvas, currentTheme, geometry.keys[pressedIndex], letterRowPx)
         }
         if (stripModel.expanded) stripPainter.drawPanel(canvas, currentTheme, stripModel)
+        // Nothing else would ask for the next frame, and a frozen label at half opacity
+        // looks like a disabled key.
+        if (labelSwapAt != 0L) postInvalidateOnAnimation()
     }
 
     private fun labelSlide(now: Long): Float {
