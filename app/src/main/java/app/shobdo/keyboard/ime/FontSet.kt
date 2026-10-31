@@ -15,11 +15,11 @@ import app.shobdo.keyboard.theme.FontRole
  */
 class FontSet(context: Context) {
 
-    val latinRegular: Typeface = load(context, "fonts/Inter-Regular.ttf", Typeface.NORMAL, 400)
-    val latinMedium: Typeface = load(context, "fonts/Inter-Medium.ttf", Typeface.NORMAL, 500)
-    val banglaRegular: Typeface = load(context, "fonts/NotoSansBengali-Regular.ttf", Typeface.NORMAL, 400)
-    val banglaMedium: Typeface = load(context, "fonts/NotoSansBengali-Medium.ttf", Typeface.NORMAL, 500)
-    val pixel: Typeface = load(context, "fonts/PixelifySans-Regular.ttf", Typeface.NORMAL, 400)
+    val latinRegular: Typeface = load(context, "fonts/Inter-Regular.ttf", Typeface.NORMAL)
+    val latinMedium: Typeface = load(context, "fonts/Inter-Medium.ttf", Typeface.NORMAL)
+    val banglaRegular: Typeface = load(context, "fonts/NotoSansBengali-Regular.ttf", Typeface.NORMAL)
+    val banglaMedium: Typeface = load(context, "fonts/NotoSansBengali-Medium.ttf", Typeface.NORMAL)
+    val pixel: Typeface = load(context, "fonts/PixelifySans-Regular.ttf", Typeface.NORMAL)
 
     /** Latin family for a theme that asks for a specific role. */
     fun latin(role: FontRole): Typeface = when (role) {
@@ -31,9 +31,10 @@ class FontSet(context: Context) {
 
     fun latin(bold: Boolean): Typeface = if (bold) latinMedium else latinRegular
 
-    private fun load(context: Context, path: String, style: Int, weight: Int): Typeface {
-        val loaded = runCatching { Typeface.createFromAsset(context.assets, path) }.getOrNull()
-            ?: return Typeface.create(Typeface.DEFAULT, style)
-        return Typeface.create(loaded, weight, false)
+    private fun load(context: Context, path: String, style: Int): Typeface {
+        // The asset is already the weight we want (Regular or Medium), so it is used as-is.
+        // Typeface.create(Typeface, weight, italic) is API 28 and minSdk is 26.
+        return runCatching { Typeface.createFromAsset(context.assets, path) }.getOrNull()
+            ?: Typeface.create(Typeface.DEFAULT, style)
     }
 }
