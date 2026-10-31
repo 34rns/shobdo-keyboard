@@ -106,8 +106,8 @@ belong to P3 (language switching) and the emoji page.
 5. `symbols , space . enter`
 
 Four rows cannot hold a full QWERTY plus shift, backspace, space, enter, comma,
-period and the symbols key, so the number row counts as the optional fifth. See
-`.ai/DECISIONS.md` (2026-10-28).
+period and the symbols key, so the number row counts as the optional fifth and can be
+hidden by a setting.
 
 ## Bangla pages
 

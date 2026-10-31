@@ -1,8 +1,14 @@
 # Banglish typing guide
 
 Banglish mode lets you type Bangla with Roman letters. The keyboard keeps what you type as
-a buffer, suggests the Bangla word above the keys, and commits it when you press space or
-punctuation. Tap the Roman chip to keep the English instead.
+a buffer and ranks every possible reading against a shipped Bangla word list; the best
+matches sit above the keys, and space or punctuation commits the first one. Tap the Roman
+chip to keep the English instead, or open the full panel to see every candidate.
+
+The word list is a frequency table of 83,433 Bengali words, built into the app. It is used
+only to rank candidates - it never connects to the network and never rewrites the letters
+you typed. Words you pick yourself can be remembered on the device ("Learn my choices"),
+except while you are typing in a password field.
 
 The rules follow the Avro Phonetic conventions, so muscle memory from other Bangla
 keyboards mostly carries over. The rules live in a data file, not in code, which is why
@@ -66,8 +72,9 @@ At the end of a word it becomes ো, which is why `bhalo` → ভালো.
 
 ## Known differences from Avro Phonetic
 
-Avro resolves a few cases with a word dictionary. Shobdo has no dictionary, so these are
-the honest differences. They are pinned by tests so they cannot change silently.
+Avro resolves a few cases with a word dictionary. Shobdo ships a frequency word list that
+ranks candidates but does not rewrite the transliteration, so these differences remain.
+They are pinned by tests so they cannot change silently.
 
 | You type | Shobdo | Avro | Why |
 |---|---|---|---|
@@ -77,4 +84,5 @@ the honest differences. They are pinned by tests so they cannot change silently.
 | `bhalobasha` | ভালবাশা | ভালোবাসা | `sh` is শ by rule; Avro's dictionary knows the word. Use `bhalobasa` for ভালবাসা. |
 
 If a word comes out wrong, type the conjunct explicitly with `,,` or split the syllable
-with an `o`, and please open an issue with the word — a small word list is planned.
+with an `o`, and please open an issue with the word. A word that is missing from the
+ranking is the most useful report we can get.
