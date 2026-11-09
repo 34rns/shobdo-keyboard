@@ -82,7 +82,7 @@ fun ShobdoApp() {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // The word list is 1.3 MB, so the settings screen loads it off the main thread too.
+    // Load the packed word data on a worker, including the legacy fallback.
     var engine by remember { mutableStateOf<CandidateEngine?>(null) }
     var learned by remember { mutableStateOf<LearnedWords?>(null) }
     LaunchedEffect(screen) {
@@ -95,12 +95,14 @@ fun ShobdoApp() {
                 val phonetic = BanglishEngine.fromJson(
                     context.assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }
                 )
-                val lexiconText = context.assets.open(BanglishLexicon.ASSET_PATH)
-                    .bufferedReader().use { it.readText() }
-                val index = ReverseRomanIndex.parse(context.assets.open(ReverseRomanIndex.ASSET_PATH).use { it.readBytes() })
-                val bigrams = BigramTable.parse(context.assets.open(BigramTable.ASSET_PATH).bufferedReader().use { it.readText() })
+                val index = runCatching { ReverseRomanIndex.parse(context.assets.open(ReverseRomanIndex.ASSET_PATH).use { it.readBytes() }) }
+                    .getOrElse { ReverseRomanIndex.empty() }
+                val lexicon = if (index.wordCount > 0) BanglishLexicon.empty() else
+                    runCatching { BanglishLexicon.parse(context.assets.open(BanglishLexicon.ASSET_PATH).bufferedReader().use { it.readLines() }) }.getOrElse { BanglishLexicon.empty() }
+                val bigrams = runCatching { BigramTable.parse(context.assets.open(BigramTable.ASSET_PATH).bufferedReader().use { it.readText() }) }
+                    .getOrElse { BigramTable.empty() }
                 val store = LearnedWords.open(File(context.filesDir, LearnedWords.FILE_NAME))
-                CandidateEngine(phonetic, rules, BanglishLexicon.parse(lexiconText.lines()), store, index, bigrams) to store
+                CandidateEngine(phonetic, rules, lexicon, store, index, bigrams) to store
             }.getOrNull()
         }
         engine = loaded?.first

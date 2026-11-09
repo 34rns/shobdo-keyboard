@@ -35,6 +35,9 @@ internal class KeyboardTouch(
     private var stripAction: StripAction? = null
     private var panelPressed = -1
     private var panelTouch = false
+    private var panelDownY = 0f
+    private var panelLastY = 0f
+    private var panelScrolled = false
     private var spacePointer = -1
     private val spaceGesture = SpaceGesture()
 
@@ -51,6 +54,9 @@ internal class KeyboardTouch(
                 }
                 if (stripModel.expanded) {
                     panelTouch = true
+                    panelDownY = y
+                    panelLastY = y
+                    panelScrolled = false
                     panelPressed = stripPainter.panelAt(x, y)
                     return true
                 }
@@ -61,7 +67,17 @@ internal class KeyboardTouch(
                 val index = event.actionIndex
                 down(event.getPointerId(index), event.getX(index), event.getY(index))
             }
-            MotionEvent.ACTION_MOVE -> if (!panelTouch && !stripModel.expanded) move(event)
+            MotionEvent.ACTION_MOVE -> {
+                if (panelTouch) {
+                    if (kotlin.math.abs(event.y - panelDownY) > 8f * density) panelScrolled = true
+                    if (panelScrolled) {
+                        stripPainter.scrollPanel(panelLastY - event.y)
+                        panelPressed = -1
+                        invalidate()
+                    }
+                    panelLastY = event.y
+                } else if (!stripModel.expanded) move(event)
+            }
             MotionEvent.ACTION_POINTER_UP -> {
                 if (panelTouch || stripModel.expanded) return true
                 val index = event.actionIndex
@@ -71,9 +87,9 @@ internal class KeyboardTouch(
                 view.performClick()
                 if (panelTouch) {
                     val chosen = stripPainter.panelAt(event.x, event.y)
-                    if (chosen >= 0 && chosen == panelPressed) {
+                    if (!panelScrolled && chosen >= 0 && chosen == panelPressed) {
                         stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
-                    } else if (!stripPainter.panelRect.contains(event.x, event.y)) {
+                    } else if (!panelScrolled && !stripPainter.panelRect.contains(event.x, event.y)) {
                         listener?.onToggleCandidates()
                     }
                     panelTouch = false

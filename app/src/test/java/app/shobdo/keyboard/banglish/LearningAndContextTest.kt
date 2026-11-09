@@ -5,6 +5,22 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LearningAndContextTest {
+    @Test fun `recording again does not revive expired counts`() {
+        var clock = 1000000000L
+        val learned = LearnedWords(File.createTempFile("shobdo-expired", ".tsv")) { clock }
+        repeat(500) { learned.record("আছি", "আমি") }
+        clock += (LearnedWords.HALF_LIFE_MS * 12).toLong()
+        learned.record("আছি", "আমি")
+        val fresh = LearnedWords(File.createTempFile("shobdo-fresh", ".tsv")) { clock }
+        fresh.record("আছি", "আমি")
+        assertEquals(fresh.bonus("আছি", "আমি"), learned.bonus("আছি", "আমি"), .001)
+    }
+    @Test fun `dictionary rejects isolated marks and punctuation`() {
+        val learned = LearnedWords(File.createTempFile("shobdo-valid", ".tsv"))
+        assertFalse(learned.add("mark", "াম"))
+        assertFalse(learned.add("punctuation", "অ\u09FD"))
+        assertTrue(learned.add("word", "নাম"))
+    }
     @Test fun `learning decays over thirty days and remembers previous word`() {
         var clock = 1000000000L
         val learned = LearnedWords(File.createTempFile("shobdo-decay", ".tsv")) { clock }

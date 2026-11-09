@@ -7,13 +7,23 @@ import java.util.PriorityQueue
 class ReverseRomanIndex private constructor(
     private val data: ByteBuffer,
     private val offsets: IntArray,
-    private val words: Array<BanglishLexicon.Word>
+    private val words: IntArray
 ) {
+    private val decodedWords = arrayOfNulls<String>(words.size)
     val wordCount: Int get() = words.size
     val rowCount: Int get() = offsets.size
 
     private fun length(row: Int): Int = data.getShort(offsets[row]).toInt() and 0xffff
-    private fun word(row: Int): BanglishLexicon.Word = words[data.getInt(offsets[row] + 2 + length(row))]
+    private fun word(row: Int): BanglishLexicon.Word {
+        val id = data.getInt(offsets[row] + 2 + length(row))
+        val offset = words[id]
+        val size = data.getShort(offset).toInt() and 0xffff
+        val text = decodedWords[id] ?: ByteArray(size).let { bytes ->
+            for (i in bytes.indices) bytes[i] = data.get(offset + 2 + i)
+            String(bytes, Charsets.UTF_8).also { decodedWords[id] = it }
+        }
+        return BanglishLexicon.Word(text, data.getInt(offset + 2 + size))
+    }
     private fun compare(row: Int, key: String, prefix: Boolean = false): Int {
         val length = length(row)
         val offset = offsets[row] + 2
@@ -79,7 +89,7 @@ class ReverseRomanIndex private constructor(
         private const val MAX_FUZZY_INPUT = 20
         private const val PREFIX_SCAN_LIMIT = 4096
         private const val ALPHABET = "abcdefghijklmnopqrstuvwxyz"
-        fun empty() = ReverseRomanIndex(ByteBuffer.allocate(0), IntArray(0), emptyArray())
+        fun empty() = ReverseRomanIndex(ByteBuffer.allocate(0), IntArray(0), IntArray(0))
         fun parse(bytes: ByteArray): ReverseRomanIndex {
             try {
                 require(bytes.size in 12..40_000_000)
@@ -87,14 +97,14 @@ class ReverseRomanIndex private constructor(
                 require(buffer.int == 0x53524931)
                 val count = buffer.int
                 require(count in 0..200_000)
-                val words = Array(count) {
+                val words = IntArray(count) {
+                    val offset = buffer.position()
                     val size = buffer.short.toInt() and 0xffff
                     require(size in 1..200)
-                    val text = ByteArray(size)
-                    buffer.get(text)
+                    buffer.position(buffer.position() + size)
                     val weight = buffer.int
                     require(weight > 0)
-                    BanglishLexicon.Word(String(text, Charsets.UTF_8), weight)
+                    offset
                 }
                 val rows = buffer.int
                 require(rows in 0..2_000_000)

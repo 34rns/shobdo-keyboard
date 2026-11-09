@@ -199,7 +199,8 @@ def main():
         f"     engine matches the reference for every fixture; "
         f"{len(deviations)} documented Avro deviation(s) asserted explicitly"
     )
-    return 0
+    from banglish_assets_check import validate
+    return validate()
 
 
 if __name__ == "__main__":

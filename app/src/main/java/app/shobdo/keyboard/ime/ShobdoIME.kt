@@ -57,8 +57,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     }
     @Volatile
     private var lexicon: BanglishLexicon = BanglishLexicon.empty()
-    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        applyPreferences()
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key != SettingsRepository.KEY_LAST_LANGUAGE) applyPreferences()
     }
     override fun onCreate() {
         super.onCreate()
@@ -91,6 +91,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         bangla.reset()
         banglish.reset()
         restoreLanguage()
+        if (info != null && info.imeOptions and EditorInfo.IME_FLAG_FORCE_ASCII != 0) language = Language.ENGLISH
         pageIndex = 0
         showCurrentPage()
         updateSuggestions()
@@ -141,8 +142,10 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         worker.execute {
             val rules = runCatching { SkeletonRules.fromJson(assets.open(SkeletonRules.ASSET_PATH).bufferedReader().use { it.readText() }) }.getOrElse { SkeletonRules.empty() }
             val parser = runCatching { BanglishEngine.fromJson(assets.open(BanglishEngine.RULE_ASSET_PATH).bufferedReader().use { it.readText() }) }.getOrNull()
-            val words = runCatching { BanglishLexicon.parse(assets.open(BanglishLexicon.ASSET_PATH).bufferedReader().use { it.readLines() }) }.getOrElse { BanglishLexicon.empty() }
             val index = runCatching { ReverseRomanIndex.parse(assets.open(ReverseRomanIndex.ASSET_PATH).use { it.readBytes() }) }.getOrElse { ReverseRomanIndex.empty() }
+            val words = if (index.wordCount > 0) BanglishLexicon.empty() else runCatching {
+                BanglishLexicon.parse(assets.open(BanglishLexicon.ASSET_PATH).bufferedReader().use { it.readLines() })
+            }.getOrElse { BanglishLexicon.empty() }
             val context = runCatching { BigramTable.parse(assets.open(BigramTable.ASSET_PATH).bufferedReader().use { it.readText() }) }.getOrElse { BigramTable.empty() }
             val store = LearnedWords.open(File(filesDir, LearnedWords.FILE_NAME))
             uiHandler.post {
@@ -186,7 +189,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         val id = ids[pageIndex.coerceIn(0, ids.size - 1)]
         val page = layouts.getOrPut(id) { LayoutLoader.load(assets, id) }
         view.setLanguage(language)
-        view.setStyle(style())
+        view.setStyle(keyboardStyle(settings, theme, language))
         view.setLayout(withEnterLabel(page, handler.enterLabel()))
         view.setTheme(
             theme ?: themeManager.withImageOverride(
@@ -197,31 +200,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
             ).also { theme = it }
         )
     }
-        private fun withEnterLabel(page: KeyboardLayout, label: String): KeyboardLayout {
-        if (label == "⏎") return page
-        val rows = page.rows.map { row ->
-            row.map { key -> if (key.type == KeyType.ENTER) key.copy(label = label) else key }
-        }
-        return page.copy(rows = rows)
-    }
-    private fun style(): KeyboardStyle {
-        val height = settings.keyHeight
-        return KeyboardStyle(
-            keyHeightDpPortrait = height.dpPortrait,
-            keyHeightDpLandscape = height.dpLandscape,
-            borders = settings.keyBorders,
-            popup = settings.keyPreview,
-            preview = settings.keyPreview,
-            haptic = settings.hapticEnabled,
-            hapticStrength = settings.hapticStrength,
-            sound = settings.soundEnabled,
-            fontScale = settings.fontScale * (theme?.fontScale ?: 1f),
-            oneHanded = settings.oneHanded,
-            numberRow = settings.numberRow,
-            shiftUsesAlternates = language == Language.BANGLA
-        )
-    }
-        private fun applyPreferences() {
+    private fun applyPreferences() {
         theme = themeManager.withImageOverride(
             themeManager.active(settings.themeId),
             settings.backgroundImage,

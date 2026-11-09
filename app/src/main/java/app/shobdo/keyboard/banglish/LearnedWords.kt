@@ -6,6 +6,8 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.math.ln
 import kotlin.math.pow
+import kotlin.math.expm1
+import kotlin.math.roundToInt
 
 /** Bounded local counts. I/O is coalesced on a worker; no transcript is retained. */
 class LearnedWords(private val file: File, private val now: () -> Long = System::currentTimeMillis) {
@@ -47,10 +49,13 @@ class LearnedWords(private val file: File, private val now: () -> Long = System:
         (contexts[previous to word]?.let { strength(it) * 100 } ?: 0.0).coerceAtMost(160.0)
     @Synchronized fun record(word: String, previous: String = "") {
         if (word.isBlank() || word.length > 40 || word.any { it == '\t' || it == '\n' || it == '\r' }) return
-        counts[word] = Count(((counts[word]?.value ?: 0) + 1).coerceAtMost(10000), now())
+        val at = now()
+        fun increment(old: Count?) = Count(
+            ((old?.let { expm1(strength(it, at)).roundToInt() } ?: 0) + 1).coerceAtMost(10000), at)
+        counts[word] = increment(counts[word])
         if (previous.isNotBlank() && previous.length <= 40 && previous.none { it == '\t' || it == '\n' || it == '\r' }) {
             val key = previous to word
-            contexts[key] = Count(((contexts[key]?.value ?: 0) + 1).coerceAtMost(10000), now())
+            contexts[key] = increment(contexts[key])
         }
         trim()
         saveLater()
@@ -106,6 +111,10 @@ class LearnedWords(private val file: File, private val now: () -> Long = System:
         @Synchronized fun open(file: File) = shared.getOrPut(file.absolutePath) { LearnedWords(file) }
         private fun valid(roman: String, word: String) = roman.length in 1..40 &&
             roman.all { it in 'a'..'z' || it in 'A'..'Z' } && word.length in 1..40 &&
-            word.all { it.code in 0x0980..0x09FF && it.code !in 0x09E6..0x09EF }
+            Character.isLetter(word.first()) && word.all {
+                it.code in 0x0980..0x09FF && (Character.isLetter(it) ||
+                    Character.getType(it) == Character.NON_SPACING_MARK.toInt() ||
+                    Character.getType(it) == Character.COMBINING_SPACING_MARK.toInt())
+            }
     }
 }

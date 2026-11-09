@@ -11,6 +11,8 @@ import app.shobdo.keyboard.banglish.LearnedWords
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 /** Explicit names/dialect words; separate from automatic learned counts. */
 @Composable
@@ -27,6 +29,7 @@ fun UserDictionaryScreen(learned: LearnedWords?, onBack: () -> Unit) {
             Text(stringResource(R.string.dictionary_body), style = MaterialTheme.typography.bodyMedium)
             OutlinedTextField(roman, { roman = it.take(40); invalid = false },
                 label = { Text(stringResource(R.string.dictionary_roman)) }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, autoCorrectEnabled = false),
                 modifier = Modifier.fillMaxWidth(), isError = invalid)
             OutlinedTextField(word, { word = it.take(40); invalid = false },
                 label = { Text(stringResource(R.string.dictionary_word)) }, singleLine = true,
@@ -53,7 +56,8 @@ fun UserDictionaryScreen(learned: LearnedWords?, onBack: () -> Unit) {
                     TextButton(enabled = !busy, modifier = Modifier.heightIn(min = 48.dp), onClick = {
                         busy = true
                         scope.launch {
-                            withContext(Dispatchers.IO) { learned?.remove(entry.word); learned?.flush() }
+                            val saved = withContext(Dispatchers.IO) { learned?.remove(entry.word); learned?.flush() == true }
+                            invalid = !saved
                             entries = withContext(Dispatchers.IO) { learned?.dictionary().orEmpty() }
                             busy = false
                         }

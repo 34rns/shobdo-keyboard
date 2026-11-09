@@ -13,4 +13,8 @@
             android:windowSoftInputMode="adjustResize" />
     </application>
 
+    <instrumentation android:name="app.shobdo.keyboard.debug.KeyboardChecks"
+        android:targetPackage="app.shobdo.keyboard.debug"
+        android:label="Offline keyboard checks" />
+
 </manifest>

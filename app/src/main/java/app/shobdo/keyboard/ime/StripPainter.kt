@@ -39,6 +39,8 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
     private val wordRect = RectF()
 
     private var lastDensity = 0f
+    private var scrollOffset = 0f
+    private var maxScroll = 0f
 
     /** Lays out the strip for [model]. Cheap; called on content change, not per frame. */
     fun layout(strip: RectF, model: StripModel, density: Float) {
@@ -165,13 +167,16 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
         val height = rows * cellHeight + 8f * density
         // The grid only needs a few rows, but a sheet that stops in the middle of a key row
         // looks broken. It is drawn down to [coverTo] so the keys never peek out below it.
-        panelRect.set(0f, top, width, top + maxOf(height, coverTo - top))
+        val available = if (coverTo > top) coverTo - top else height
+        panelRect.set(0f, top, width, top + available)
+        maxScroll = (height - available).coerceAtLeast(0f)
+        scrollOffset = scrollOffset.coerceIn(0f, maxScroll)
         val cellWidth = width / PANEL_COLUMNS
         for (index in 0 until minOf(count, PANEL_COLUMNS * PANEL_MAX_ROWS)) {
             val column = index % PANEL_COLUMNS
             val row = index / PANEL_COLUMNS
             val left = column * cellWidth
-            val cellTop = top + 4f * density + row * cellHeight
+            val cellTop = top + 4f * density + row * cellHeight - scrollOffset
             panelRects.add(RectF(left + 2f * density, cellTop, left + cellWidth - 2f * density, cellTop + cellHeight))
         }
         return height
@@ -179,6 +184,8 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
 
     fun drawPanel(canvas: Canvas, theme: KeyboardTheme, model: StripModel) {
         if (panelRect.isEmpty) return
+        val checkpoint = canvas.save()
+        canvas.clipRect(panelRect)
         box.fill.color = theme.barBackground
         canvas.drawRect(panelRect, box.fill)
         box.text.typeface = Typeface.DEFAULT
@@ -196,6 +203,15 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
             box.text.textSize = 15f * lastDensity
             box.drawFitted(canvas, model.candidates[index], rect.left + 3f * lastDensity, rect.right - 3f * lastDensity, rect.centerY(), 15f * lastDensity)
         }
+        canvas.restoreToCount(checkpoint)
+    }
+
+    fun scrollPanel(delta: Float) {
+        val next = (scrollOffset + delta).coerceIn(0f, maxScroll)
+        val offset = scrollOffset - next
+        if (offset == 0f) return
+        scrollOffset = next
+        for (index in panelRects.indices) panelRects[index].offset(0f, offset)
     }
 
     fun chipAt(x: Float, y: Float): Int {
@@ -204,6 +220,7 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
     }
 
     fun panelAt(x: Float, y: Float): Int {
+        if (!panelRect.contains(x, y)) return -1
         for (index in panelRects.indices) if (panelRects[index].contains(x, y)) return index
         return -1
     }
