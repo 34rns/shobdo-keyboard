@@ -162,3 +162,7 @@ Security issues go through [SECURITY.md](SECURITY.md), not the public tracker.
 
 [MIT](LICENSE) © 34rns (source code). Bundled word data is CC BY-SA 4.0 and fonts
 are SIL OFL 1.1; see [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Support
+
+[Buy me a coffee](https://www.supportkori.com/rnsofficial)
