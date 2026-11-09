@@ -79,15 +79,36 @@ class KeyPainter(private val icons: IconSet) {
 
     // --- background ------------------------------------------------------------------
 
+    fun prepare(theme: KeyboardTheme, keys: List<PlacedKey>, width: Float, height: Float) {
+        val background = theme.background
+        if (background is ThemeBackground.Gradient) {
+            val key = "${theme.id}:${width.toInt()}x${height.toInt()}"
+            if (shader == null || shaderKey != key) {
+                shader = buildGradient(background, width, height)
+                shaderKey = key
+            }
+        }
+        if (background is ThemeBackground.Image) imageFor(background.path, background.blur)
+        val radius = KeyboardMetrics.clampRadius(theme.keyRadius) * box.density
+        for (key in keys) {
+            val fill = when {
+                key.key.type == KeyType.ENTER -> theme.accent
+                key.isSpecial -> theme.specialFill
+                else -> theme.keyFill
+            }
+            key.normalBitmap = surfaces.bitmap(key.rect.width().toInt(), key.rect.height().toInt(),
+                KeySurface(fill, radius, theme.keyShape, theme.keyDepth))
+            key.pressedBitmap = surfaces.bitmap(key.rect.width().toInt(), key.rect.height().toInt(),
+                KeySurface(if (key.isSpecial) fill else theme.keyPressed, radius, theme.keyShape, theme.keyDepth))
+            icons.prepareKey(key, theme)
+        }
+        icons.prepareStrip(box.density, theme.barText)
+    }
+
     fun drawBackground(canvas: Canvas, theme: KeyboardTheme, width: Float, height: Float) {
         when (val background = theme.background) {
             is ThemeBackground.Solid -> canvas.drawColor(background.color)
             is ThemeBackground.Gradient -> {
-                val key = "${theme.id}:${width.toInt()}x${height.toInt()}"
-                if (shader == null || shaderKey != key) {
-                    shader = buildGradient(background, width, height)
-                    shaderKey = key
-                }
                 box.fill.shader = shader
                 box.fill.color = Color.WHITE
                 canvas.drawRect(0f, 0f, width, height, box.fill)
@@ -95,7 +116,7 @@ class KeyPainter(private val icons: IconSet) {
             }
             is ThemeBackground.Image -> {
                 canvas.drawColor(background.fallback)
-                val image = imageFor(background.path, background.blur)
+                val image = bitmap
                 if (image != null) {
                     sourceRect.set(0, 0, image.width, image.height)
                     destRect.set(0f, 0f, width, height)
@@ -189,15 +210,16 @@ class KeyPainter(private val icons: IconSet) {
                 active -> lerp(theme.keyFill, theme.keyPressed, progress)
                 else -> theme.keyFill
             }
-            val surface = KeySurface(
-                fill = fill,
-                radius = radius,
-                shape = theme.keyShape,
-                depth = theme.keyDepth
-            )
-            val bitmap = surfaces.bitmap(scratch.width().toInt(), scratch.height().toInt(), surface)
+            val bitmap = placed.normalBitmap
             if (bitmap != null) {
-                canvas.drawBitmap(bitmap, scratch.left, scratch.top, null)
+                sourceRect.set(0, 0, bitmap.width, bitmap.height)
+                box.fill.alpha = 255
+                canvas.drawBitmap(bitmap, sourceRect, scratch, box.fill)
+                if (active) {
+                    box.fill.alpha = (progress * 255).toInt()
+                    placed.pressedBitmap?.let { canvas.drawBitmap(it, sourceRect, scratch, box.fill) }
+                    box.fill.alpha = 255
+                }
             }
 
             if (borders && theme.keyStroke != 0 && !isAction) {
@@ -237,7 +259,7 @@ class KeyPainter(private val icons: IconSet) {
         val cy = rect.centerY()
         val iconId = IconSet.forKey(placed.key.type, shift)
         if (iconId != 0) {
-            val size = (rect.height() * 0.46f).coerceAtMost(rect.width() * 0.66f)
+            val size = (placed.rect.height() * 0.46f).coerceAtMost(placed.rect.width() * 0.66f)
             icons.draw(canvas, iconId, cx, cy, size, theme.specialText)
             return
         }
@@ -249,7 +271,7 @@ class KeyPainter(private val icons: IconSet) {
             drawSpaceLabel(canvas, theme, placed.label, rect)
             return
         }
-        val glyph = renderable(placed.label)
+        val glyph = placed.displayLabel
         val isBangla = glyph.any { it.code in 0x0980..0x09FF }
         box.text.typeface = when {
             isBangla -> banglaTypeface
@@ -369,7 +391,7 @@ class KeyPainter(private val icons: IconSet) {
     private fun drawActionLabel(canvas: Canvas, theme: KeyboardTheme, placed: PlacedKey, rect: RectF) {
         val onAccent = if (isLight(theme.accent)) Color.BLACK else Color.WHITE
         if (placed.label == RETURN_GLYPH || placed.label.isEmpty()) {
-            val size = (rect.height() * 0.44f).coerceAtMost(rect.width() * 0.60f)
+            val size = (placed.rect.height() * 0.44f).coerceAtMost(placed.rect.width() * 0.60f)
             icons.draw(canvas, IconSet.RETURN, rect.centerX(), rect.centerY(), size, onAccent)
             return
         }

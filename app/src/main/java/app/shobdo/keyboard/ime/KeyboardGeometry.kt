@@ -12,6 +12,12 @@ class PlacedKey(
     val code: String
 ) {
     val rect: RectF = RectF()
+    val displayLabel: String = if (label.isNotEmpty() &&
+        (label[0].code in 0x0981..0x0983 || label[0].code == 0x09BC ||
+         label[0].code in 0x09BE..0x09CD || label[0].code == 0x09D7 || label[0].code in 0x09E2..0x09E3)
+    ) "ক$label" else label
+    var normalBitmap: android.graphics.Bitmap? = null
+    var pressedBitmap: android.graphics.Bitmap? = null
 
     val isSpecial: Boolean get() = key.isSpecial
 }

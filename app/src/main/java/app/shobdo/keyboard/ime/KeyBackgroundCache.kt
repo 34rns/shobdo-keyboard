@@ -151,6 +151,6 @@ class KeyBackgroundCache {
          * Every distinct key width on the widest page is cached; the cap keeps a pathological
          * layout (or a rotating screen) from pinning megabytes.
          */
-        private const val CACHE_SIZE = 48
+        private const val CACHE_SIZE = 128
     }
 }

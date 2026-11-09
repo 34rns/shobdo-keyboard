@@ -51,7 +51,7 @@ object KeyboardMetrics {
     const val pressScale = 0.97f
 
     /** How long the spacebar keeps showing the new language name after a switch. */
-    const val labelSwapMs = 900L
+    const val labelSwapMs = 130L
 
     fun rowHeight(isNumberRow: Boolean): Float =
         if (isNumberRow) numberRowHeight else letterRowHeight

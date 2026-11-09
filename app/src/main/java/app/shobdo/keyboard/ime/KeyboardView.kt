@@ -11,6 +11,7 @@ import android.util.SparseIntArray
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
+import android.view.animation.DecelerateInterpolator
 import app.shobdo.keyboard.settings.OneHanded
 import app.shobdo.keyboard.theme.KeyboardTheme
 
@@ -88,6 +89,9 @@ class KeyboardView(context: Context) : View(context) {
     private var stripAction: StripAction? = null
     private var panelPressed = -1
     private var labelSwapAt = 0L
+    private val spaceGesture = SpaceGesture()
+    private val labelEasing = DecelerateInterpolator()
+    private var spacePointer = -1
 
     init {
         isClickable = true
@@ -125,7 +129,8 @@ class KeyboardView(context: Context) : View(context) {
         if (language != newLanguage) {
             language = newLanguage
             labelSwapAt = SystemClock.uptimeMillis()
-            scheduleAnimation()
+            handler.removeCallbacks(labelTick)
+            postOnAnimation(labelTick)
         }
         rebuild()
     }
@@ -199,6 +204,7 @@ class KeyboardView(context: Context) : View(context) {
             hiddenRowIndexes = if (style.numberRow) emptySet() else setOfNotNull(page.numberRowIndex)
         )
         painter.numberRowIndex = page.numberRowIndex ?: -1
+        theme?.let { painter.prepare(it, geometry.keys, width.toFloat(), height.toFloat()) }
         stripPainter.layout(geometry.barRect, stripModel, density)
         panelBottom = 0f
         if (stripModel.expanded && stripModel.hasCandidates) {
@@ -257,7 +263,6 @@ class KeyboardView(context: Context) : View(context) {
         if (stripModel.expanded) stripPainter.drawPanel(canvas, currentTheme, stripModel)
         // Nothing else would ask for the next frame, and a frozen label at half opacity
         // looks like a disabled key.
-        if (labelSwapAt != 0L) postInvalidateOnAnimation()
     }
 
     private fun labelSlide(now: Long): Float {
@@ -267,7 +272,7 @@ class KeyboardView(context: Context) : View(context) {
             labelSwapAt = 0L
             return 1f
         }
-        return (elapsed.toFloat() / KeyboardMetrics.labelSwapMs).coerceIn(0f, 1f)
+        return labelEasing.getInterpolation((elapsed.toFloat() / KeyboardMetrics.labelSwapMs).coerceIn(0f, 1f))
     }
 
     // --- touch -----------------------------------------------------------------------
@@ -349,6 +354,7 @@ class KeyboardView(context: Context) : View(context) {
         pressedPointer = pointerId
         press.press(SystemClock.uptimeMillis())
         val key = geometry.keys[index].key
+        if (key.type == KeyType.SPACE) { spaceGesture.start(x); spacePointer = pointerId }
         if (key.type == KeyType.BACKSPACE) {
             listener?.onBackspace()
             feedback.key(isDelete = true)
@@ -366,6 +372,7 @@ class KeyboardView(context: Context) : View(context) {
     private fun move(event: MotionEvent) {
         for (i in 0 until event.pointerCount) {
             val id = event.getPointerId(i)
+            if (id == spacePointer && spaceGesture.switched) continue
             val index = pointers.get(id, -1)
             if (index < 0 || index !in geometry.keys.indices) continue
             if (popupShowing && id == pressedPointer) {
@@ -381,6 +388,15 @@ class KeyboardView(context: Context) : View(context) {
                 continue
             }
             val rect = geometry.keys[index].rect
+            if (geometry.keys[index].key.type == KeyType.SPACE && id == pressedPointer) {
+                if (spaceGesture.move(event.getX(i), 36f * density)) {
+                    cancelTimers()
+                    press.reset()
+                    pressedIndex = -1
+                    listener?.onCycleLanguage()
+                }
+                if (spaceGesture.switched) continue
+            }
             val slop = 12f * density
             if (event.getX(i) < rect.left - slop || event.getX(i) > rect.right + slop ||
                 event.getY(i) < geometry.barRect.bottom - slop || event.getY(i) > rect.bottom + slop * 3
@@ -392,6 +408,14 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun up(pointerId: Int) {
+        if (pointerId == spacePointer && spaceGesture.switched) {
+            spacePointer = -1
+            pointers.delete(pointerId)
+            cancelTimers()
+            releasePress()
+            return
+        }
+        if (pointerId == spacePointer) spacePointer = -1
         val index = pointers.get(pointerId, -1)
         pointers.delete(pointerId)
         if (popupShowing && pointerId == pressedPointer) {
@@ -428,7 +452,7 @@ class KeyboardView(context: Context) : View(context) {
             KeyType.BACKSPACE -> Unit
             KeyType.ENTER -> listener?.onEnter()
             KeyType.SPACE -> {
-                listener?.onSpace()
+                if (!spaceGesture.switched) listener?.onSpace()
                 consumeShiftOnce()
             }
             KeyType.SYMBOLS -> listener?.onSymbols()
@@ -450,6 +474,7 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun cancelTouch() {
+        spacePointer = -1
         cancelTimers()
         pointers.clear()
         press.reset()
@@ -467,6 +492,20 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     // --- animation -------------------------------------------------------------------
+
+    private val labelTick = object : Runnable {
+        override fun run() {
+            val progress = labelSlide(SystemClock.uptimeMillis())
+            for (index in geometry.keys.indices) {
+                val key = geometry.keys[index]
+                if (key.key.type == KeyType.SPACE) {
+                    invalidate(key.rect.left.toInt(), key.rect.top.toInt(), key.rect.right.toInt() + 1, key.rect.bottom.toInt() + 1)
+                    break
+                }
+            }
+            if (progress < 1f) postOnAnimation(this)
+        }
+    }
 
     private val animationTick = object : Runnable {
         override fun run() {
@@ -527,6 +566,7 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDetachedFromWindow() {
         cancelTimers()
         handler.removeCallbacks(animationTick)
+        handler.removeCallbacks(labelTick)
         painter.clearCaches()
         super.onDetachedFromWindow()
     }

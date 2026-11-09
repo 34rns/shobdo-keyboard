@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.util.SparseArray
 import androidx.annotation.DrawableRes
 import app.shobdo.keyboard.R
 
@@ -19,7 +20,8 @@ import app.shobdo.keyboard.R
  */
 class IconSet(private val context: Context) {
 
-    private val cache = HashMap<Int, Bitmap>(16)
+    private val cache = SparseArray<Bitmap>()
+    private val filters = SparseArray<PorterDuffColorFilter>()
     private val canvas = Canvas()
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private var filter: PorterDuffColorFilter? = null
@@ -36,7 +38,7 @@ class IconSet(private val context: Context) {
         drawable.setBounds(0, 0, sizePx, sizePx)
         drawable.draw(canvas)
         canvas.setBitmap(null)
-        cache[key] = bitmap
+        cache.put(key, bitmap)
         return bitmap
     }
 
@@ -53,18 +55,40 @@ class IconSet(private val context: Context) {
         color: Int
     ) {
         val pixels = size.toInt().coerceAtLeast(1)
-        val bitmap = bitmap(id, pixels) ?: return
-        if (filter == null || filterColor != color) {
-            filter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-            filterColor = color
-        }
-        paint.colorFilter = filter
+        val bitmap = cache[id * 1000 + pixels] ?: return
+        paint.colorFilter = filters[color]
         target.drawBitmap(bitmap, centerX - pixels / 2f, centerY - pixels / 2f, paint)
     }
 
     fun clear() {
-        for (bitmap in cache.values) bitmap.recycle()
+        for (index in 0 until cache.size()) cache.valueAt(index).recycle()
         cache.clear()
+        filters.clear()
+    }
+
+    private fun prepare(id: Int, size: Float, color: Int) {
+        bitmap(id, size.toInt().coerceAtLeast(1))
+        if (filters[color] == null) filters.put(color, PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN))
+    }
+
+    fun prepareStrip(density: Float, color: Int) {
+        for (id in intArrayOf(THEME, ONE_HANDED, SETTINGS, COLLAPSE)) prepare(id, 20f * density, color)
+    }
+
+    fun prepareKey(key: PlacedKey, theme: app.shobdo.keyboard.theme.KeyboardTheme) {
+        val rect = key.rect
+        val size = (rect.height() * 0.46f).coerceAtMost(rect.width() * 0.66f)
+        // Pressed icons use the same raster size; only their centres move with the key.
+        for (state in ShiftState.entries) {
+            val id = forKey(key.key.type, state)
+            if (id != 0) prepare(id, size, theme.specialText)
+        }
+        if (key.key.type == KeyType.ENTER) {
+            val color = if (android.graphics.Color.red(theme.accent) * 0.299 +
+                android.graphics.Color.green(theme.accent) * 0.587 + android.graphics.Color.blue(theme.accent) * 0.114 > 160
+            ) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+            prepare(RETURN, (rect.height() * 0.44f).coerceAtMost(rect.width() * 0.60f), color)
+        }
     }
 
     companion object {
