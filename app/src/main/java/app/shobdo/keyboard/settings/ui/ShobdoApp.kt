@@ -39,6 +39,8 @@ import app.shobdo.keyboard.banglish.CandidateEngine
 import app.shobdo.keyboard.banglish.LearnedWords
 import app.shobdo.keyboard.banglish.SkeletonRules
 import java.io.File
+import app.shobdo.keyboard.banglish.ReverseRomanIndex
+import app.shobdo.keyboard.banglish.BigramTable
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -82,8 +84,10 @@ fun ShobdoApp() {
 
     // The word list is 1.3 MB, so the settings screen loads it off the main thread too.
     var engine by remember { mutableStateOf<CandidateEngine?>(null) }
-    LaunchedEffect(Unit) {
-        engine = withContext(Dispatchers.IO) {
+    var learned by remember { mutableStateOf<LearnedWords?>(null) }
+    LaunchedEffect(screen) {
+        if (screen != Screen.BANGLISH.name || engine != null) return@LaunchedEffect
+        val loaded = withContext(Dispatchers.IO) {
             runCatching {
                 val rules = SkeletonRules.fromJson(
                     context.assets.open(SkeletonRules.ASSET_PATH).bufferedReader().use { it.readText() }
@@ -93,11 +97,16 @@ fun ShobdoApp() {
                 )
                 val lexiconText = context.assets.open(BanglishLexicon.ASSET_PATH)
                     .bufferedReader().use { it.readText() }
-                CandidateEngine(phonetic, rules, BanglishLexicon.parse(lexiconText.lines()))
+                val index = ReverseRomanIndex.parse(context.assets.open(ReverseRomanIndex.ASSET_PATH).use { it.readBytes() })
+                val bigrams = BigramTable.parse(context.assets.open(BigramTable.ASSET_PATH).bufferedReader().use { it.readText() })
+                val store = LearnedWords.open(File(context.filesDir, LearnedWords.FILE_NAME))
+                CandidateEngine(phonetic, rules, BanglishLexicon.parse(lexiconText.lines()), store, index, bigrams) to store
             }.getOrNull()
         }
+        engine = loaded?.first
+        learned = loaded?.second
     }
-    val learned = remember { LearnedWords(File(context.filesDir, LearnedWords.FILE_NAME)) }
+
 
     val current = Screen.valueOf(screen)
     val rootScreen = if (repository.onboardingComplete) Screen.HOME else Screen.ONBOARDING

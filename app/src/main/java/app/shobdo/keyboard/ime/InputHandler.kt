@@ -28,7 +28,11 @@ class InputHandler {
         connection = ic
         editorInfo = info
         isPasswordField = info != null && isPasswordInput(info.inputType)
+        suggestionsSuppressed = info != null && shouldSuppressSuggestions(info.inputType, info.imeOptions)
     }
+
+    var suggestionsSuppressed: Boolean = false
+        private set
 
     fun commit(text: String) {
         if (text.isEmpty()) return
@@ -42,6 +46,11 @@ class InputHandler {
     }
 
     fun finishComposing() {
+        connection?.finishComposingText()
+    }
+
+    fun clearComposing() {
+        connection?.commitText("", 1)
         connection?.finishComposingText()
     }
 
@@ -74,6 +83,14 @@ class InputHandler {
     }
 
     companion object {
+        fun shouldSuppressSuggestions(inputType: Int, imeOptions: Int): Boolean {
+            val variation = inputType and InputType.TYPE_MASK_VARIATION
+            return isPasswordInput(inputType) || inputType and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT ||
+                inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0 ||
+                imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0 ||
+                variation == InputType.TYPE_TEXT_VARIATION_URI || variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        }
+
         /** All the password variations Android offers, including the numeric PIN field. */
         fun isPasswordInput(inputType: Int): Boolean {
             val variation = inputType and InputType.TYPE_MASK_VARIATION
@@ -129,94 +146,3 @@ class BanglaSession(private val handler: InputHandler) {
     val pending: String get() = buffer
 }
 
-/**
- * Banglish typing: the Roman buffer lives in the composing region, so backspace always edits
- * Roman letters and the editor shows exactly what was typed until a candidate is chosen.
- *
- * Candidate work happens in [CandidateEngine]; this class only owns the buffer, the editor
- * calls and which candidate is highlighted.
- */
-class BanglishSession(
-    private val handler: InputHandler,
-    private val engine: CandidateEngine,
-    private val banglaFirst: Boolean,
-    private val learnEnabled: Boolean,
-    private val learned: LearnedWords?
-) {
-
-    private val roman = StringBuilder()
-    private var ranked: List<CandidateEngine.Candidate> = emptyList()
-
-    val isActive: Boolean get() = roman.isNotEmpty()
-
-    val romanText: String get() = roman.toString()
-
-    /** The Bangla word Space will commit. */
-    val banglaCandidate: String
-        get() = ranked.firstOrNull { it.bangla }?.text ?: engine.best(roman.toString())
-
-    /** Up to [limit] chip labels, with the Roman text kept where the settings put it. */
-    fun candidates(limit: Int = 8): List<String> {
-        if (roman.isEmpty()) return emptyList()
-        if (ranked.isEmpty()) refresh()
-        val texts = ranked.map { it.text }
-        return if (banglaFirst) texts.take(limit) else romanFirst(texts).take(limit)
-    }
-
-    /** Index of the chip that Space will commit. */
-    fun primaryIndex(): Int {
-        val texts = candidates()
-        val index = texts.indexOfFirst { it != romanText }
-        return if (index < 0) 0 else index
-    }
-
-    fun type(text: String) {
-        if (text.isEmpty()) return
-        roman.append(text)
-        handler.setComposing(roman.toString())
-        refresh()
-    }
-
-    /** @return false when the buffer was already empty. */
-    fun delete(): Boolean {
-        if (roman.isEmpty()) return false
-        roman.setLength(roman.length - 1)
-        handler.setComposing(roman.toString())
-        refresh()
-        return true
-    }
-
-    /** Commits one candidate and closes the composing region. */
-    fun commit(text: String): Boolean {
-        if (roman.isEmpty() || text.isEmpty()) return false
-        handler.commit(text)
-        if (learnEnabled && text != romanText) learned?.record(text)
-        roman.setLength(0)
-        ranked = emptyList()
-        return true
-    }
-
-    /** Space or punctuation: the highlighted Bangla word replaces the Roman composing text. */
-    fun commitBangla(): Boolean = commit(banglaCandidate)
-
-    /** The Roman chip keeps the English text instead. */
-    fun commitRoman(): Boolean = commit(romanText)
-
-    fun reset() {
-        roman.setLength(0)
-        ranked = emptyList()
-    }
-
-    private fun refresh() {
-        ranked = if (roman.isEmpty()) emptyList() else engine.candidates(roman.toString())
-    }
-
-    private fun romanFirst(texts: List<String>): List<String> {
-        val index = texts.indexOf(romanText)
-        if (index <= 0) return texts
-        val ordered = texts.toMutableList()
-        ordered.removeAt(index)
-        ordered.add(0, romanText)
-        return ordered
-    }
-}

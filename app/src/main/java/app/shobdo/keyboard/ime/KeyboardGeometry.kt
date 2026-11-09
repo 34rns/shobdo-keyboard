@@ -18,6 +18,9 @@ class PlacedKey(
     ) "ক$label" else label
     var normalBitmap: android.graphics.Bitmap? = null
     var pressedBitmap: android.graphics.Bitmap? = null
+    val displayAlternates: List<String> = key.longPressChars.map { alternate ->
+        if (alternate.isNotEmpty() && (alternate[0].code in 0x0981..0x0983 || alternate[0].code in 0x09BE..0x09CD)) "ক$alternate" else alternate
+    }
 
     val isSpecial: Boolean get() = key.isSpecial
 }

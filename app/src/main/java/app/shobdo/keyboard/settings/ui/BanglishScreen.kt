@@ -34,12 +34,19 @@ fun BanglishScreen(
     var banglaFirst by remember { mutableStateOf(repository.banglaCandidateFirst) }
     var learn by remember { mutableStateOf(repository.learnBanglish) }
     var cleared by remember { mutableStateOf(false) }
+    var dictionary by remember { mutableStateOf(false) }
+
+    androidx.activity.compose.BackHandler(enabled = dictionary) { dictionary = false }
 
     Column(
         Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
+        if (dictionary) {
+            UserDictionaryScreen(learned) { dictionary = false }
+            return@Column
+        }
         SectionCard(title = stringResource(R.string.banglish_title)) {
             ChoiceRow(
                 label = stringResource(R.string.banglish_candidate_order),
@@ -63,6 +70,8 @@ fun BanglishScreen(
         }
 
         SectionCard(title = stringResource(R.string.banglish_learn_title)) {
+            NavRow(label = stringResource(R.string.dictionary_title), onClick = { dictionary = true })
+            RowDivider()
             SwitchRow(
                 label = stringResource(R.string.banglish_learn_switch),
                 checked = learn,

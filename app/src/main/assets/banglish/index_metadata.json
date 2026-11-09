@@ -1,0 +1,9 @@
+{
+  "words": 82816,
+  "roman_rows": 333039,
+  "reverse_bytes": 6952901,
+  "original_words": 126,
+  "bigrams": 51,
+  "lexicon_sha256": "5f091217878414c38da0495870fb91b1a71c6378362090670dc80c649c9d5cc6",
+  "license": "CC BY-SA 4.0 for derived index; original supplements MIT"
+}

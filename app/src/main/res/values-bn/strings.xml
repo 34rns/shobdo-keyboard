@@ -179,4 +179,14 @@
     <!-- review -->
     <string name="cd_language_switch">%1$s ভাষার সুইচ</string>
 
+    <string name="dictionary_title">নিজের শব্দতালিকা</string>
+    <string name="dictionary_body">একটি বাংলা শব্দ ও আপনার রোমান বানান যোগ করুন। শব্দগুলো এই ডিভাইসেই থাকবে।</string>
+    <string name="dictionary_roman">রোমান বানান</string>
+    <string name="dictionary_word">বাংলা শব্দ</string>
+    <string name="dictionary_add">শব্দ যোগ করুন</string>
+    <string name="dictionary_remove">%1$s সরান</string>
+    <string name="dictionary_back">বাংলিশে ফিরে যান</string>
+    <string name="dictionary_empty">এখনও কোনো শব্দ নেই। উপরে একটি নাম বা আঞ্চলিক শব্দ যোগ করুন।</string>
+    <string name="dictionary_loading">আপনার শব্দগুলো আসছে…</string>
+    <string name="dictionary_error">রোমান অক্ষর ও একটি বাংলা শব্দ লিখুন, সর্বোচ্চ ৪০ অক্ষর। তালিকায় ২০০টি শব্দ রাখা যায়। সংরক্ষণ ব্যর্থ হলে খালি স্টোরেজ পরীক্ষা করুন।</string>
 </resources>

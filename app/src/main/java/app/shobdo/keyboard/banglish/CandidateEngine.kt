@@ -21,7 +21,10 @@ class CandidateEngine(
     private val phonetic: BanglishEngine,
     private val skeleton: SkeletonRules,
     private val lexicon: BanglishLexicon,
-    private val learned: LearnedWords? = null
+    private val learned: LearnedWords? = null,
+    private val reverse: ReverseRomanIndex = ReverseRomanIndex.empty(),
+    private val bigrams: BigramTable = BigramTable.empty(),
+    private val learningEnabled: Boolean = true
 ) {
 
     data class Candidate(
@@ -34,15 +37,16 @@ class CandidateEngine(
     enum class Source { EXACT, PHONETIC, PREFIX, NEAR, VARIANT, ROMAN }
 
     /** Ranked candidates for [roman]; the Roman text is always within the first three. */
-    fun candidates(roman: String, limit: Int = 40): List<Candidate> {
+    fun candidates(roman: String, limit: Int = 40, previousWord: String = ""): List<Candidate> {
         if (roman.isBlank()) return emptyList()
+        if (roman.length > ReverseRomanIndex.MAX_INPUT) return listOf(Candidate(roman, false, ROMAN_SCORE, Source.ROMAN))
         val key = skeleton.ofRoman(roman)
         val phoneticText = phonetic.transliterate(roman)
         val ranked = LinkedHashMap<String, Candidate>(16)
 
         fun offer(text: String, bangla: Boolean, score: Double, source: Source) {
             if (text.isEmpty()) return
-            val bonus = if (bangla) learnedBonus(text) else 0.0
+            val bonus = if (bangla) (if (learningEnabled) learned?.bonus(text, previousWord) ?: 0.0 else 0.0) + bigrams.bonus(previousWord, text) else 0.0
             val adjusted = score + bonus
             val existing = ranked[text]
             if (existing == null || adjusted > existing.score) {
@@ -50,6 +54,19 @@ class CandidateEngine(
             }
         }
 
+        val indexed = reverse.exact(key)
+        val manual = learned?.matches(roman).orEmpty()
+        for (word in indexed) offer(word.text, true, 1400.0 + frequency(word.count), Source.EXACT)
+        val fuzzyKey = roman.lowercase().split('x').joinToString("x") { skeleton.ofRoman(it) }
+        val fuzzy = if (indexed.isEmpty()) reverse.near(fuzzyKey) else emptyList()
+        for (word in fuzzy) offer(word.text, true, 1370.0 + frequency(word.count), Source.NEAR)
+        for (word in manual) offer(word, true, 1550.0, Source.EXACT)
+        if (indexed.isNotEmpty() || manual.isNotEmpty()) {
+            for (word in reverse.prefix(key)) offer(word.text, true, 900.0 + frequency(word.count), Source.PREFIX)
+            offer(roman, false, ROMAN_SCORE, Source.ROMAN)
+            return keepRomanNearTop(ranked.values.sortedWith(compareByDescending<Candidate> { it.score }.thenBy { it.text })).take(limit)
+        }
+        for (word in reverse.prefix(key)) offer(word.text, true, 900.0 + frequency(word.count), Source.PREFIX)
         val exact = if (key.isEmpty()) emptyList() else lexicon.exact(key, EXACT_LIMIT)
         for (word in exact) {
             offer(word.text, true, EXACT_SCORE + frequency(word.count), Source.EXACT)

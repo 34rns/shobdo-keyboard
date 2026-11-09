@@ -65,34 +65,22 @@ class KeyboardView(context: Context) : View(context) {
     private val feedback = KeyFeedback(context)
     private val press = PressAnimation()
     private val handler = Handler(Looper.getMainLooper())
-    private val pointers = SparseIntArray()
+    private val touch = KeyboardTouch(this, geometry, stripPainter, shift, repeater, feedback, press, handler)
     private val density = resources.displayMetrics.density
 
     private var layout: KeyboardLayout? = null
     private var theme: KeyboardTheme? = null
     private var language: Language = Language.ENGLISH
-    private var style = KeyboardStyle()
-    private var stripModel = StripModel()
+    internal var style = KeyboardStyle()
+    internal var stripModel = StripModel()
 
-    private var letterRowPx = 0f
+    internal var letterRowPx = 0f
     private var navInsetPx = 0
     private var panelBottom = 0f
 
-    private var pressedIndex = -1
-    private var pressedPointer = -1
-    private var popupShowing = false
-    private var popupSelected = 0
-    private var popupChars: List<String> = emptyList()
 
-    private var stripChip = -1
-    private var stripExpand = false
-    private var stripAction: StripAction? = null
-    private var panelPressed = -1
-    private var panelTouch = false
     private var labelSwapAt = 0L
-    private val spaceGesture = SpaceGesture()
     private val labelEasing = DecelerateInterpolator()
-    private var spacePointer = -1
 
     init {
         isClickable = true
@@ -130,16 +118,17 @@ class KeyboardView(context: Context) : View(context) {
         if (language != newLanguage) {
             language = newLanguage
             labelSwapAt = SystemClock.uptimeMillis()
-            handler.removeCallbacks(labelTick)
+            removeCallbacks(labelTick)
             postOnAnimation(labelTick)
         }
         rebuild()
     }
 
     fun setStrip(model: StripModel) {
+        if (stripModel == model) return
         stripModel = model
-        requestLayout()
-        rebuild()
+        layoutStrip()
+        invalidate()
     }
 
     fun armShiftOnce() {
@@ -180,7 +169,7 @@ class KeyboardView(context: Context) : View(context) {
     private fun visibleRows(page: KeyboardLayout): List<IndexedValue<List<KeyModel>>> =
         page.rows.withIndex().filter { style.numberRow || it.index != page.numberRowIndex }
 
-    private fun rebuild() {
+    internal fun rebuild() {
         val page = layout ?: return
         if (width == 0) return
         val visible = visibleRows(page)
@@ -206,6 +195,11 @@ class KeyboardView(context: Context) : View(context) {
         )
         painter.numberRowIndex = page.numberRowIndex ?: -1
         theme?.let { painter.prepare(it, geometry.keys, width.toFloat(), height.toFloat()) }
+        layoutStrip()
+        invalidate()
+    }
+
+    private fun layoutStrip() {
         stripPainter.layout(geometry.barRect, stripModel, density)
         panelBottom = 0f
         if (stripModel.expanded && stripModel.hasCandidates) {
@@ -247,19 +241,19 @@ class KeyboardView(context: Context) : View(context) {
             canvas = canvas,
             theme = currentTheme,
             keys = geometry.keys,
-            activeIndex = pressedIndex,
-            progress = if (popupShowing) 0f else press.progress(now),
+            activeIndex = touch.pressedIndex,
+            progress = if (touch.popupShowing) 0f else press.progress(now),
             borders = style.borders,
             shift = shift.state
         )
-        if (popupShowing && pressedIndex in geometry.keys.indices) {
+        if (touch.popupShowing && touch.pressedIndex in geometry.keys.indices) {
             painter.drawPopup(
-                canvas, currentTheme, geometry.keys[pressedIndex], popupChars, popupSelected, letterRowPx
+                canvas, currentTheme, geometry.keys[touch.pressedIndex], touch.popupChars, touch.popupSelected, letterRowPx
             )
-        } else if (pressedIndex in geometry.keys.indices && style.preview &&
+        } else if (touch.pressedIndex in geometry.keys.indices && style.preview &&
             press.progress(now) > 0.5f
         ) {
-            painter.drawPreview(canvas, currentTheme, geometry.keys[pressedIndex], letterRowPx)
+            painter.drawPreview(canvas, currentTheme, geometry.keys[touch.pressedIndex], letterRowPx)
         }
         if (stripModel.expanded) stripPainter.drawPanel(canvas, currentTheme, stripModel)
         // Nothing else would ask for the next frame, and a frozen label at half opacity
@@ -283,225 +277,7 @@ class KeyboardView(context: Context) : View(context) {
         return true
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                val x = event.x
-                val y = event.y
-                if (y <= geometry.barRect.bottom) {
-                    stripChip = stripPainter.chipAt(x, y)
-                    stripExpand = stripPainter.expandHit(x, y)
-                    stripAction = stripPainter.actionAt(x, y)
-                    return true
-                }
-                if (stripModel.expanded) {
-                    panelTouch = true
-                    panelPressed = stripPainter.panelAt(x, y)
-                    return true
-                }
-                down(event.getPointerId(0), x, y)
-            }
-            MotionEvent.ACTION_POINTER_DOWN -> {
-                if (panelTouch || stripExpand || stripChip >= 0 || stripModel.expanded) return true
-                val index = event.actionIndex
-                down(event.getPointerId(index), event.getX(index), event.getY(index))
-            }
-            MotionEvent.ACTION_MOVE -> if (!panelTouch && !stripModel.expanded) move(event)
-            MotionEvent.ACTION_POINTER_UP -> {
-                if (panelTouch || stripModel.expanded) return true
-                val index = event.actionIndex
-                up(event.getPointerId(index))
-            }
-            MotionEvent.ACTION_UP -> {
-                performClick()
-                if (panelTouch) {
-                    val chosen = stripPainter.panelAt(event.x, event.y)
-                    if (chosen >= 0 && chosen == panelPressed) {
-                        stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
-                    } else if (!stripPainter.panelRect.contains(event.x, event.y)) {
-                        listener?.onToggleCandidates()
-                    }
-                    panelTouch = false
-                    panelPressed = -1
-                    return true
-                }
-                if (stripChip >= 0 || stripExpand || stripAction != null) {
-                    handleStripRelease(event.x, event.y)
-                    return true
-                }
-                up(event.getPointerId(0))
-            }
-            MotionEvent.ACTION_CANCEL -> cancelTouch()
-        }
-        return true
-    }
-
-    private fun handleStripRelease(x: Float, y: Float) {
-        if (stripExpand && stripPainter.expandHit(x, y)) {
-            listener?.onToggleCandidates()
-        } else if (stripAction != null && stripPainter.actionAt(x, y) == stripAction) {
-            stripAction?.let { listener?.onStripAction(it) }
-        } else if (stripChip >= 0) {
-            val chosen = stripPainter.chipAt(x, y)
-            if (chosen == stripChip) {
-                stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
-            }
-        }
-        stripChip = -1
-        stripExpand = false
-        stripAction = null
-    }
-
-    private fun down(pointerId: Int, x: Float, y: Float) {
-        val index = geometry.findKey(x, y)
-        pointers.put(pointerId, index)
-        if (index < 0) return
-        if (pressedIndex >= 0) return
-        pressedIndex = index
-        pressedPointer = pointerId
-        press.press(SystemClock.uptimeMillis())
-        val key = geometry.keys[index].key
-        if (key.type == KeyType.SPACE) { spaceGesture.start(x); spacePointer = pointerId }
-        if (key.type == KeyType.BACKSPACE) {
-            listener?.onBackspace()
-            feedback.key(isDelete = true)
-            repeater.press(SystemClock.uptimeMillis())
-            handler.postDelayed(repeatRunnable, BackspaceRepeater.INTERVAL_MS)
-        } else {
-            feedback.key()
-        }
-        if (key.hasLongPress || key.type == KeyType.GLOBE) {
-            handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
-        }
-        scheduleAnimation()
-    }
-
-    private fun move(event: MotionEvent) {
-        for (i in 0 until event.pointerCount) {
-            val id = event.getPointerId(i)
-            if (id == spacePointer && spaceGesture.switched) continue
-            val index = pointers.get(id, -1)
-            if (index < 0 || index !in geometry.keys.indices) continue
-            if (popupShowing && id == pressedPointer) {
-                val rect = geometry.keys[index].rect
-                val count = popupChars.size
-                if (count > 0) {
-                    val cell = letterRowPx * 0.96f
-                    val left = (rect.centerX() - (cell * count + 8f) / 2f)
-                        .coerceAtLeast(4f * density)
-                    popupSelected = (((event.getX(i) - left) / cell).toInt()).coerceIn(0, count - 1)
-                    invalidate()
-                }
-                continue
-            }
-            val rect = geometry.keys[index].rect
-            if (geometry.keys[index].key.type == KeyType.SPACE && id == pressedPointer) {
-                if (spaceGesture.move(event.getX(i), 36f * density)) {
-                    cancelTimers()
-                    press.reset()
-                    pressedIndex = -1
-                    listener?.onCycleLanguage()
-                }
-                if (spaceGesture.switched) continue
-            }
-            val slop = 12f * density
-            if (event.getX(i) < rect.left - slop || event.getX(i) > rect.right + slop ||
-                event.getY(i) < geometry.barRect.bottom - slop || event.getY(i) > rect.bottom + slop * 3
-            ) {
-                pointers.put(id, -1)
-                if (id == pressedPointer) cancelTouch()
-            }
-        }
-    }
-
-    private fun up(pointerId: Int) {
-        if (pointerId == spacePointer && spaceGesture.switched) {
-            spacePointer = -1
-            pointers.delete(pointerId)
-            cancelTimers()
-            releasePress()
-            return
-        }
-        if (pointerId == spacePointer) spacePointer = -1
-        val index = pointers.get(pointerId, -1)
-        pointers.delete(pointerId)
-        if (popupShowing && pointerId == pressedPointer) {
-            val alternate = popupChars.getOrNull(popupSelected)
-            popupShowing = false
-            popupChars = emptyList()
-            cancelTimers()
-            releasePress()
-            if (alternate != null) {
-                listener?.onText(alternate)
-                consumeShiftOnce()
-            }
-            return
-        }
-        if (index in geometry.keys.indices) commit(geometry.keys[index])
-        cancelTimers()
-        releasePress()
-    }
-
-    private fun releasePress() {
-        press.release(SystemClock.uptimeMillis())
-        pressedPointer = -1
-        scheduleAnimation()
-    }
-
-    private fun commit(placed: PlacedKey) {
-        val now = SystemClock.uptimeMillis()
-        when (placed.key.type) {
-            KeyType.SHIFT -> {
-                val state = shift.shiftPressed(now)
-                listener?.onShiftChanged(state)
-                rebuild()
-            }
-            KeyType.BACKSPACE -> Unit
-            KeyType.ENTER -> listener?.onEnter()
-            KeyType.SPACE -> {
-                if (!spaceGesture.switched) listener?.onSpace()
-                consumeShiftOnce()
-            }
-            KeyType.SYMBOLS -> listener?.onSymbols()
-            KeyType.GLOBE -> listener?.onCycleLanguage()
-            KeyType.EMOJI -> Unit
-            KeyType.COMMA, KeyType.PERIOD, KeyType.NORMAL -> {
-                listener?.onText(placed.code)
-                consumeShiftOnce()
-            }
-        }
-    }
-
-    private fun consumeShiftOnce() {
-        if (shift.state == ShiftState.ONCE) {
-            shift.characterTyped()
-            listener?.onShiftChanged(shift.state)
-            rebuild()
-        }
-    }
-
-    private fun cancelTouch() {
-        panelTouch = false
-        panelPressed = -1
-        stripChip = -1
-        stripExpand = false
-        stripAction = null
-        spacePointer = -1
-        cancelTimers()
-        pointers.clear()
-        press.reset()
-        pressedIndex = -1
-        pressedPointer = -1
-        popupShowing = false
-        popupChars = emptyList()
-        invalidate()
-    }
-
-    private fun cancelTimers() {
-        handler.removeCallbacks(longPressRunnable)
-        handler.removeCallbacks(repeatRunnable)
-        repeater.release()
-    }
+    override fun onTouchEvent(event: MotionEvent): Boolean = touch.onTouchEvent(event)
 
     // --- animation -------------------------------------------------------------------
 
@@ -519,56 +295,6 @@ class KeyboardView(context: Context) : View(context) {
         }
     }
 
-    private val animationTick = object : Runnable {
-        override fun run() {
-            if (press.isAnimating(SystemClock.uptimeMillis())) {
-                invalidate()
-                handler.postDelayed(this, FRAME_MS)
-            } else {
-                pressedIndex = -1
-                invalidate()
-            }
-        }
-    }
-
-    private fun scheduleAnimation() {
-        handler.removeCallbacks(animationTick)
-        postOnAnimation(animationTick)
-    }
-
-    private val longPressRunnable = Runnable {
-        val index = pressedIndex
-        if (index !in geometry.keys.indices) return@Runnable
-        val key = geometry.keys[index].key
-        if (key.type == KeyType.GLOBE) {
-            cancelTimers()
-            press.reset()
-            pressedIndex = -1
-            invalidate()
-            listener?.onLanguagePicker()
-            return@Runnable
-        }
-        if (key.hasLongPress) {
-            popupShowing = true
-            popupChars = key.longPressChars
-            popupSelected = 0
-            feedback.longPress()
-            invalidate()
-        }
-    }
-
-    private val repeatRunnable = object : Runnable {
-        override fun run() {
-            val due = repeater.due(SystemClock.uptimeMillis())
-            var count = 0
-            while (count < due) {
-                listener?.onBackspace()
-                count++
-            }
-            if (repeater.isHolding) handler.postDelayed(this, BackspaceRepeater.INTERVAL_MS)
-        }
-    }
-
     private fun applyFeedback() {
         feedback.haptic = style.haptic
         feedback.strength = style.hapticStrength
@@ -576,9 +302,8 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     override fun onDetachedFromWindow() {
-        cancelTimers()
-        handler.removeCallbacks(animationTick)
-        handler.removeCallbacks(labelTick)
+        touch.detach()
+        removeCallbacks(labelTick)
         painter.clearCaches()
         super.onDetachedFromWindow()
     }

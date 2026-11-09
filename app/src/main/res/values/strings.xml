@@ -125,4 +125,14 @@
     <string name="cd_navigate_back">Go back</string>
     <string name="cd_language_switch">%1$s language switch</string>
 
+    <string name="dictionary_title">User dictionary</string>
+    <string name="dictionary_body">Add a Bangla word and the Roman spelling you use. Your words stay on this device.</string>
+    <string name="dictionary_roman">Roman spelling</string>
+    <string name="dictionary_word">Bangla word</string>
+    <string name="dictionary_add">Add word</string>
+    <string name="dictionary_remove">Remove %1$s</string>
+    <string name="dictionary_back">Back to Banglish</string>
+    <string name="dictionary_empty">No words yet. Add a name or dialect word above.</string>
+    <string name="dictionary_loading">Loading your words…</string>
+    <string name="dictionary_error">Use Roman letters and a Bangla word, up to 40 characters. The dictionary holds 200 words. Check available storage if saving fails.</string>
 </resources>

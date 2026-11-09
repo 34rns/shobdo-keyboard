@@ -1,0 +1,16 @@
+Banglish word data: FrequencyWords by Hermit Dave, Bengali OpenSubtitles 2018 frequencies.
+Copyright (c) 2016 Hermit Dave. Content license: Creative Commons Attribution-ShareAlike 4.0.
+Source: https://github.com/hermitdave/FrequencyWords/blob/master/content/2018/bn/bn_full.txt
+License declaration: https://github.com/hermitdave/FrequencyWords#license
+License text: CC-BY-SA-4.0.txt in this directory.
+
+Shobdo's lexicon.bin and reverse.bin are adapted data under CC BY-SA 4.0:
+Bengali filtering, NFC normalization, skeleton indexing, generated Roman variants,
+and combination with independently authored local-word supplements.
+Source scripts and original data: https://github.com/34rns/shobdo-keyboard/tree/main/tools
+No endorsement by the source authors is implied.
+
+tools/data/local_words.tsv and tools/data/chat_phrases.txt, and the generated bigrams.tsv:
+Original project examples, MIT, Copyright (c) 2026 Shobdo Keyboard contributors.
+These weights are editorial priorities, not independently measured frequencies.
+The app source remains under its separate MIT license.
