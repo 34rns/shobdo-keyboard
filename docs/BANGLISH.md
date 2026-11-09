@@ -5,10 +5,24 @@ a buffer and ranks every possible reading against a shipped Bangla word list; th
 matches sit above the keys, and space or punctuation commits the first one. Tap the Roman
 chip to keep the English instead, or open the full panel to see every candidate.
 
-The word list is a frequency table of 83,433 Bengali words, built into the app. It is used
-only to rank candidates - it never connects to the network and never rewrites the letters
-you typed. Words you pick yourself can be remembered on the device ("Learn my choices"),
-except while you are typing in a password field.
+The shipped packed reverse index contains 82,816 unique Bengali words and 333,039 Roman
+references, including 126 original local, name and loanword entries. Lookup first resolves
+common spellings such as `bhalo`/`valo` → ভালো, `kemon` → কেমন and `kormo` → কর্ম.
+Typing a prefix such as `bhal` already offers ভালো, ভালোবাসা and ভালোই. There is no
+network access. The literal phonetic rules below remain unchanged.
+
+Roman composition appears immediately; ranking runs on a worker. The strip displays a
+bounded set of candidates and the arrow opens a scrolling panel for more. Tapping its up
+arrow or pressing Back closes it. A candidate commit, language change, empty buffer or
+keyboard hide also closes the panel. Space waits for the current word's ranking before
+committing, preserving rapid typing order.
+
+Small seed bigrams favor follow-ups to the previous committed word. "Learn my choices"
+adds bounded local word/context counts with a 30-day recency half-life; it can be disabled
+or cleared in Settings → Banglish. User dictionary entries can be added and removed there
+and remain available with automatic learning off. Password, URI/email, numeric and fields
+requesting no suggestions or no personalized learning suppress suggestions and recording.
+See [Privacy](../PRIVACY.md) for exact storage limits and defaults.
 
 The rules follow the Avro Phonetic conventions, so muscle memory from other Bangla
 keyboards mostly carries over. The rules live in a data file, not in code, which is why
@@ -72,16 +86,16 @@ At the end of a word it becomes ো, which is why `bhalo` → ভালো.
 
 ## Known differences from Avro Phonetic
 
-Avro resolves a few cases with a word dictionary. Shobdo ships a frequency word list that
-ranks candidates but does not rewrite the transliteration, so these differences remain.
-They are pinned by tests so they cannot change silently.
+Literal conversion has two tested deviations below. Ranked dictionary suggestions can
+correct a literal reading; these are different layers of the engine. For example `kormo`
+has literal করমো but the first ranked suggestion is কর্ম, and dictionary spellings handle
+`bhalobasha` → ভালোবাসা. Automatic reph is dictionary based; an unknown name may still
+need an explicit conjunct or a user dictionary entry.
 
 | You type | Shobdo | Avro | Why |
 |---|---|---|---|
 | `ko` | কো | ক | A trailing `o` becomes ো, which `bhalo` → ভালো depends on. Type just `k` for ক. |
 | `supriyo` | সুপ্রিয়ো | সুপ্রিয় | Nothing marks the final `য়` as closing the word. |
-| `kormo` | করমো | কর্ম | Automatic reph (র্) is not implemented yet. |
-| `bhalobasha` | ভালবাশা | ভালোবাসা | `sh` is শ by rule; Avro's dictionary knows the word. Use `bhalobasa` for ভালবাসা. |
 
 If a word comes out wrong, type the conjunct explicitly with `,,` or split the syllable
 with an `o`, and please open an issue with the word. A word that is missing from the

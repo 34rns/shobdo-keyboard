@@ -277,7 +277,10 @@ class KeyboardView(context: Context) : View(context) {
         return true
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean = touch.onTouchEvent(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
+        return touch.onTouchEvent(event)
+    }
 
     // --- animation -------------------------------------------------------------------
 

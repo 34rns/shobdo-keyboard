@@ -84,7 +84,6 @@ internal class KeyboardTouch(
                 up(event.getPointerId(index))
             }
             MotionEvent.ACTION_UP -> {
-                view.performClick()
                 if (panelTouch) {
                     val chosen = stripPainter.panelAt(event.x, event.y)
                     if (!panelScrolled && chosen >= 0 && chosen == panelPressed) {

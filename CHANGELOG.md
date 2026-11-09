@@ -11,6 +11,34 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - No unreleased changes yet.
 
+## [0.4.0] - 2026-11-09
+
+### Added
+
+- Offline packed reverse Roman lookup with ranked prefix completions, spelling-error
+  fallback, 126 original local/name/loanword entries and 51 seed bigrams.
+- Local user dictionary with add/remove, bounded contextual learning and 30-day decay.
+- Fixed 422-case before/after benchmark and debug-only Android gesture/scroll checks.
+
+### Fixed
+
+- Space swipes switch language during movement with immediate state and a cancellable
+  130 ms eased label transition. Prepared drawing resources reduce draw-time work.
+- Candidate close arrow uses the same bounds for drawing and touch routing. The panel
+  consumes gestures, resets on commit/hide/language change, and scrolls within the keyboard.
+- Reverse lookup resolves common spellings such as `valo`, `kemon` and `kormo` (কর্ম).
+- Ranking and data loading run on a worker; stale results are rejected and Space waits
+  for the current ranking during rapid typing. Final composing backspace clears the text.
+- Password, URI/email, numeric, no-suggestion and no-personalized-learning fields
+  suppress Banglish suggestions and automatic learning.
+
+### Changed
+
+- Corrected FrequencyWords content licensing to CC BY-SA 4.0, with attribution and full
+  license in the APK; project source code remains MIT. Updated local-storage privacy text.
+- Regression accuracy: top-1 74.17% → 91.00%; visible top-3 83.18% → 97.63%.
+  See `docs/BENCHMARK.md` for methodology and limitations.
+
 ## [0.3.0] - 2026-10-31
 
 ### Added

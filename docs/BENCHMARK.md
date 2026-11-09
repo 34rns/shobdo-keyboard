@@ -23,10 +23,11 @@ python scripts/banglish_benchmark.py
 python scripts/banglish_benchmark.py --from-report
 ```
 
-The desktop JVM run measured warm lookup mean 0.018 ms, p95 0.060 ms, maximum
-0.096 ms. These are engine lookup timings, not input-to-render latency.
-Android emulator warm lookup p95 was 1.179 ms and maximum 1.912 ms; cold asset
-load was 747 ms on the instrumentation worker. Asset loading and ranking in the
+The final desktop JVM run measured warm lookup mean 0.025 ms, p95 0.083 ms, maximum
+0.190 ms. These are engine lookup timings, not input-to-render latency.
+Android emulator warm lookup p95 ranged from 1.179 to 2.157 ms and maximum from
+1.912 to 3.684 ms in repeated runs. Cold asset load ranged from 747 to 1,444 ms
+on the instrumentation worker. Asset loading and ranking in the
 IME are on a background worker; the Roman composition appears immediately.
 First-result latency still depends on the device and cold asset load.
 
@@ -48,6 +49,11 @@ Live screen inspection also verified `ami` → আমি, repeated panel open/cl
 Back closing the panel, Space committing `আমি `, and native dictionary add/remove.
 The Roman dictionary field temporarily displayed English; the Bangla field
 restored Banglish. The expanded sheet stays within the keyboard and scrolls.
+All ten requested words were subsequently entered through actual Canvas key taps,
+and their first suggestion was visually verified. Real portrait/landscape rotation,
+hide/reopen and password/URI/numeric fields passed; sensitive-field typing left the
+learning-file hash unchanged. The signed release also passed swipe, panel and Space
+commit smoke checks using the debug-only demo as its receiving app.
 
 No physical-phone measurement, allocation profiling or native-language review
 has been performed. Do not equate the warm lookup timing with total frame time.

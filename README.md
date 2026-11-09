@@ -62,9 +62,10 @@ and `scripts/compose_screenshots.py` builds the composites.
 - **Long-press accents.** Hold a vowel for é è ê ë, and digits for `!@#$%` and friends.
 - **Bangla composing.** Kar signs, hasanta joining and one-unit backspace that removes a
   base letter together with its kar.
-- **Suggestion bar that ranks.** Every reading of your Roman buffer is scored against an
-  83,000-word Bangla frequency list, so common words come first. Expand the strip for the full
-  panel, and let the keyboard remember the words you pick.
+- **Suggestion bar that ranks.** An offline 82,816-word reverse index handles common
+  Roman spellings, prefixes, reph and spelling errors. Expand the scrolling panel for more
+  candidates, enable local learning, or add names and dialect words to your dictionary.
+- **Swipe the space bar** to switch language immediately; the globe also cycles languages.
 - **Thirteen themes** with a live keyboard preview in the picker, plus duplicate, create,
   export and import.
 - **Adjustable everything:** key height, spacing, corner radius, font size, bold, borders,
@@ -148,7 +149,7 @@ settings are in **[docs/THEME_FORMAT.md](docs/THEME_FORMAT.md)**.
 - [x] Twenty-four themes, contrast-checked
 - [x] Signed APK, screenshots and public releases
 - [x] Word list for ranked Banglish suggestions
-- [ ] Automatic reph (র্) in Banglish words like `kormo` → কর্ম
+- [x] Automatic reph (র্) through dictionary lookup, e.g. `kormo` → কর্ম
 - [ ] More layouts (Jatiya, phonetic Bangla)
 
 ## Contributing
@@ -159,4 +160,5 @@ Security issues go through [SECURITY.md](SECURITY.md), not the public tracker.
 
 ## License
 
-[MIT](LICENSE) © 34rns
+[MIT](LICENSE) © 34rns (source code). Bundled word data is CC BY-SA 4.0 and fonts
+are SIL OFL 1.1; see [third-party notices](THIRD_PARTY_NOTICES.md).

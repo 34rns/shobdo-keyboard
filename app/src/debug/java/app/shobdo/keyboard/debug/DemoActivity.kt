@@ -68,7 +68,12 @@ class DemoActivity : Activity() {
             textSize = 16f
             // No sentence capitalisation: it would arm shift on every fresh field and make
             // the screenshot run show a capitalised keyboard on some shots and not others.
-            inputType = InputType.TYPE_CLASS_TEXT
+            inputType = when (intent.getStringExtra("fieldType")) {
+                "password" -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                "uri" -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                "numeric" -> InputType.TYPE_CLASS_NUMBER
+                else -> InputType.TYPE_CLASS_TEXT
+            }
             setBackgroundColor(colour("#1A2437"))
             setPadding(dp(20), dp(14), dp(20), dp(14))
         }
