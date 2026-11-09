@@ -145,6 +145,8 @@ Java heap PSS 17,068 KiB. This includes the whole process, not just the dictiona
 
 Local signed deliverable: `dist/Shobdo-Keyboard-v0.4.0.apk`.
 SHA-256: `c98674eea81490ac5358181fdfe906012d2562bfadaf558b16d221c44cd658cb`.
+This checksum records the prepared local snapshot. Publishing can rebuild Git provenance
+metadata; use the checksum attached to the GitHub release for the published APK.
 The APK and checksum are local ignored deliverables, not committed binaries.
 
 ## 7. Limitations and recommended next checks
