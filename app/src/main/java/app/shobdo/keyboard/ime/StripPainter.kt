@@ -56,8 +56,8 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
         box.text.textSize = primarySize
 
         if (model.hasCandidates) {
-            val arrowWidth = 26f * density
-            expandRect.set(strip.right - inset - arrowWidth, top, strip.right - inset, bottom)
+            val arrowWidth = 48f * density
+            expandRect.set(strip.right - arrowWidth, strip.top, strip.right, strip.bottom)
             var x = strip.left + inset
             val limit = expandRect.left - inset
             val maxChip = (strip.width() - arrowWidth - inset * 3) * 0.55f
@@ -127,7 +127,7 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
     }
 
     private fun drawExpandArrow(canvas: Canvas, theme: KeyboardTheme, expanded: Boolean) {
-        val rect = expandRect
+        val rect = arrowRect()
         if (rect.isEmpty) return
         box.stroke.color = theme.barText
         box.stroke.strokeWidth = 1.5f * lastDensity
@@ -208,7 +208,10 @@ class StripPainter(private val box: PaintBox, private val icons: IconSet) {
         return -1
     }
 
-    fun expandHit(x: Float, y: Float): Boolean = expandRect.contains(x, y)
+    /** Same rectangle for either arrow orientation, drawing and touch. */
+    fun arrowRect(): RectF = expandRect
+
+    fun expandHit(x: Float, y: Float): Boolean = arrowRect().contains(x, y)
 
     fun actionAt(x: Float, y: Float): StripAction? {
         for ((action, rect) in actionRects) if (rect.contains(x, y)) return action

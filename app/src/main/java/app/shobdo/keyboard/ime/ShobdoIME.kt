@@ -46,7 +46,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
 
     /** The word shown on the left of the strip while typing English or Banglish. */
     private var stripWord: String = ""
-    private var candidatesExpanded: Boolean = false
+    private val candidatePanel = CandidatePanelState()
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private var skeletonRules: SkeletonRules = SkeletonRules.empty()
@@ -98,7 +98,24 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         lastTypedWasSentenceEnd = false
     }
 
+    override fun onFinishInputView(finishingInput: Boolean) {
+        candidatePanel.reset()
+        banglish.reset()
+        updateSuggestions()
+        super.onFinishInputView(finishingInput)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (keyCode == android.view.KeyEvent.KEYCODE_BACK && candidatePanel.expanded) {
+            candidatePanel.reset()
+            updateSuggestions()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun onFinishInput() {
+        candidatePanel.reset()
         bangla.finish()
         bangla.reset()
         banglish.reset()
@@ -176,6 +193,8 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun selectLanguage(next: Language) {
+        candidatePanel.reset()
+        stripWord = ""
         bangla.finish()
         bangla.reset()
         banglish.reset()
@@ -261,13 +280,13 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     private fun updateSuggestions() {
         val view = keyboardView ?: return
         val composing = language == Language.BANGLISH && !handler.isPasswordField && banglish.isActive
-        if (!composing) candidatesExpanded = false
+        if (!composing) candidatePanel.reset()
         val model = if (composing) {
             StripModel(
                 // The strip shows only what fits; the expanded panel lays out all of these.
                 candidates = banglish.candidates(limit = PANEL_CANDIDATES),
                 primary = banglish.primaryIndex(),
-                expanded = candidatesExpanded
+                expanded = candidatePanel.expanded
             )
         } else {
             StripModel(word = if (handler.isPasswordField) "" else stripWord)
@@ -289,7 +308,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
 
     override fun onToggleCandidates() {
         if (!banglish.isActive) return
-        candidatesExpanded = !candidatesExpanded
+        candidatePanel.toggle(banglish.isActive)
         updateSuggestions()
     }
 
@@ -387,7 +406,7 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
         if (language == Language.BANGLISH && !handler.isPasswordField) banglish.commitBangla()
         handler.performEnter()
         stripWord = ""
-        candidatesExpanded = false
+        candidatePanel.reset()
         updateSuggestions()
         lastTypedWasSentenceEnd = false
     }
@@ -425,9 +444,9 @@ class ShobdoIME : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSuggestion(index: Int, text: String) {
-        if (language != Language.BANGLISH) return
+        if (language != Language.BANGLISH || handler.isPasswordField) return
         banglish.commit(text)
-        candidatesExpanded = false
+        candidatePanel.reset()
         updateSuggestions()
     }
 

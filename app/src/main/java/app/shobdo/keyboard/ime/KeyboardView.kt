@@ -88,6 +88,7 @@ class KeyboardView(context: Context) : View(context) {
     private var stripExpand = false
     private var stripAction: StripAction? = null
     private var panelPressed = -1
+    private var panelTouch = false
     private var labelSwapAt = 0L
     private val spaceGesture = SpaceGesture()
     private val labelEasing = DecelerateInterpolator()
@@ -287,34 +288,40 @@ class KeyboardView(context: Context) : View(context) {
             MotionEvent.ACTION_DOWN -> {
                 val x = event.x
                 val y = event.y
-                if (stripModel.expanded && y < panelBottom) {
-                    panelPressed = stripPainter.panelAt(x, y)
-                    return true
-                }
                 if (y <= geometry.barRect.bottom) {
                     stripChip = stripPainter.chipAt(x, y)
                     stripExpand = stripPainter.expandHit(x, y)
                     stripAction = stripPainter.actionAt(x, y)
                     return true
                 }
+                if (stripModel.expanded) {
+                    panelTouch = true
+                    panelPressed = stripPainter.panelAt(x, y)
+                    return true
+                }
                 down(event.getPointerId(0), x, y)
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
+                if (panelTouch || stripExpand || stripChip >= 0 || stripModel.expanded) return true
                 val index = event.actionIndex
                 down(event.getPointerId(index), event.getX(index), event.getY(index))
             }
-            MotionEvent.ACTION_MOVE -> move(event)
+            MotionEvent.ACTION_MOVE -> if (!panelTouch && !stripModel.expanded) move(event)
             MotionEvent.ACTION_POINTER_UP -> {
+                if (panelTouch || stripModel.expanded) return true
                 val index = event.actionIndex
                 up(event.getPointerId(index))
             }
             MotionEvent.ACTION_UP -> {
                 performClick()
-                if (panelPressed >= 0) {
+                if (panelTouch) {
                     val chosen = stripPainter.panelAt(event.x, event.y)
-                    if (chosen == panelPressed) {
+                    if (chosen >= 0 && chosen == panelPressed) {
                         stripModel.candidates.getOrNull(chosen)?.let { listener?.onSuggestion(chosen, it) }
+                    } else if (!stripPainter.panelRect.contains(event.x, event.y)) {
+                        listener?.onToggleCandidates()
                     }
+                    panelTouch = false
                     panelPressed = -1
                     return true
                 }
@@ -474,6 +481,11 @@ class KeyboardView(context: Context) : View(context) {
     }
 
     private fun cancelTouch() {
+        panelTouch = false
+        panelPressed = -1
+        stripChip = -1
+        stripExpand = false
+        stripAction = null
         spacePointer = -1
         cancelTimers()
         pointers.clear()
