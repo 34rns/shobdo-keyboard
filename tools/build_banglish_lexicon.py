@@ -3,7 +3,7 @@
 
     python tools/build_banglish_lexicon.py [--source PATH]
 
-Source: the Bengali list from hermitdave/FrequencyWords (MIT licence), 50k words
+Source: the Bengali list from hermitdave/FrequencyWords (content CC BY-SA 4.0), 50k words
 with occurrence counts.  The script downloads it once into build/ if it is not
 already there, then:
 
@@ -47,7 +47,7 @@ SOURCES = [
 # ranker sorts rare words last anyway. The cap is what keeps the asset inside its budget.
 MIN_COUNT = 1
 MAX_WORDS = 120_000
-LICENCE = "MIT (c) 2016 Hermit Dave - https://github.com/hermitdave/FrequencyWords"
+LICENCE = "CC BY-SA 4.0 (c) 2016 Hermit Dave - https://github.com/hermitdave/FrequencyWords"
 URL_BY_NAME = {path.name: url for url, path in SOURCES}
 
 # Words a learner is most likely to type, with the spelling people actually use.

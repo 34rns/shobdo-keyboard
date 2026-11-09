@@ -10,7 +10,7 @@ permission at all.
 |---|---|
 | Source | `hermitdave/FrequencyWords`, Bengali subtitle corpus, 2018 release |
 | URL | https://github.com/hermitdave/FrequencyWords/blob/master/content/2018/bn/bn_full.txt |
-| Licence | MIT |
+| Licence | Content CC BY-SA 4.0 (upstream code is MIT) |
 | Attribution | Copyright (c) 2016 Hermit Dave |
 | Downloaded | build time only, by `tools/build_banglish_lexicon.py`; the raw file never enters the repo |
 | Transform | Bengali-only words, junk filtered, NFC normalised, indexed by skeleton |

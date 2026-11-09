@@ -31,3 +31,17 @@ library is included, and the app declares no `INTERNET` permission.
 
 The Bangla word list shipped for Banglish suggestions is described, with its source and
 licence, in `docs/DATA_SOURCES.md`.
+
+FrequencyWords **content** (Bengali OpenSubtitles 2018 frequencies) is CC BY-SA 4.0,
+not MIT. Copyright (c) 2016 Hermit Dave; source:
+https://github.com/hermitdave/FrequencyWords/blob/master/content/2018/bn/bn_full.txt
+and upstream license declaration: https://github.com/hermitdave/FrequencyWords#license.
+`lexicon.bin`, its generated reverse Roman index and the source-derived accuracy fixture
+are adapted data distributed under CC BY-SA 4.0. Filtering, normalization and indexing
+are described in `docs/DATA_SOURCES.md`; no endorsement is implied. License:
+https://creativecommons.org/licenses/by-sa/4.0/ . App source remains MIT; these data
+components retain their separate license. The complete data license and attribution
+travel in `assets/banglish/licenses/` inside the APK.
+
+Local-word and chat-phrase supplements are independently authored project data (MIT),
+not copied from a typing service, news website or another IME.
